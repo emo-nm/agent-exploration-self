@@ -1,0 +1,6 @@
+dist/
+data/
+.flue/
+*.db
+*.db-wal
+*.db-shm
