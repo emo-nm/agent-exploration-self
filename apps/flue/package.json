@@ -4,14 +4,35 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "echo \"[flue] scaffold only — not yet implemented (port 3002)\"",
-    "build": "echo \"[flue] no build step yet\"",
-    "typecheck": "echo \"[flue] no typecheck yet\""
+    "generate:skill": "node scripts/generate-skill.mjs",
+    "prebuild": "pnpm generate:skill",
+    "build": "flue build --target node",
+    "predev": "pnpm generate:skill",
+    "dev": "flue dev --target node --port 3002",
+    "start": "node dist/server.mjs",
+    "pretypecheck": "pnpm generate:skill",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
-    "@flue/runtime": "1.0.0-beta.9"
+    "@demo/contracts": "workspace:*",
+    "@demo/domain": "workspace:*",
+    "@demo/effects": "workspace:*",
+    "@demo/persistence": "workspace:*",
+    "@demo/prompts": "workspace:*",
+    "@flue/runtime": "1.0.0-beta.9",
+    "@flue/sdk": "1.0.0-beta.9",
+    "drizzle-orm": "^0.36.0",
+    "hono": "^4.6.0",
+    "valibot": "^1.4.2"
   },
   "devDependencies": {
-    "@flue/cli": "1.0.0-beta.9"
+    "@flue/cli": "1.0.0-beta.9",
+    "@types/node": "24.x",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  },
+  "engines": {
+    "node": "24.x"
   }
 }
