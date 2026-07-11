@@ -11,6 +11,11 @@
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@demo/contracts": "workspace:*",
+    "@demo/persistence": "workspace:*",
+    "eve": "^0.22.5"
+  },
   "devDependencies": {
     "typescript": "^5.6.0"
   }

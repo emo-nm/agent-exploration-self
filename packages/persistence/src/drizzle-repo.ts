@@ -1,12 +1,21 @@
 // Drizzle-backed EffectsRepo for runtime use against Postgres.
 // Not exercised by tests (they use InMemoryEffectsRepo) but must typecheck.
 import { eq, sql } from "drizzle-orm";
+import type { PublicationProposal, ProposalStatus } from "@demo/contracts";
 import type { Database } from "./client.js";
-import { publicationEffects } from "./schema.js";
+import {
+  demoThreads,
+  publicationEffects,
+  publicationProposals,
+} from "./schema.js";
 import type {
+  Backend,
   CreateEffectInput,
+  DemoThreadRow,
   EffectsRepo,
+  ProposalsRepo,
   PublicationEffectRow,
+  ThreadsRepo,
 } from "./repo.js";
 
 function toRow(r: typeof publicationEffects.$inferSelect): PublicationEffectRow {
@@ -68,5 +77,116 @@ export class DrizzleEffectsRepo implements EffectsRepo {
       .where(eq(publicationEffects.id, id))
       .returning();
     return toRow(rows[0]!);
+  }
+}
+
+function toThreadRow(r: typeof demoThreads.$inferSelect): DemoThreadRow {
+  return {
+    id: r.id,
+    backend: r.backend as Backend,
+    externalSessionId: r.externalSessionId ?? null,
+    continuationStateJson: r.continuationStateJson ?? null,
+  };
+}
+
+export class DrizzleThreadsRepo implements ThreadsRepo {
+  constructor(private db: Database) {}
+
+  async createThread(input: {
+    id: string;
+    backend: Backend;
+  }): Promise<DemoThreadRow> {
+    const rows = await this.db
+      .insert(demoThreads)
+      .values({ id: input.id, backend: input.backend })
+      .onConflictDoNothing()
+      .returning();
+    if (rows[0]) return toThreadRow(rows[0]);
+    const existing = await this.getThread(input.id);
+    if (!existing) throw new Error(`failed to create thread ${input.id}`);
+    return existing;
+  }
+
+  async getThread(id: string): Promise<DemoThreadRow | undefined> {
+    const rows = await this.db
+      .select()
+      .from(demoThreads)
+      .where(eq(demoThreads.id, id))
+      .limit(1);
+    return rows[0] ? toThreadRow(rows[0]) : undefined;
+  }
+
+  async saveContinuation(
+    id: string,
+    args: { externalSessionId: string | null; continuationStateJson: unknown },
+  ): Promise<DemoThreadRow> {
+    const rows = await this.db
+      .update(demoThreads)
+      .set({
+        externalSessionId: args.externalSessionId,
+        continuationStateJson: args.continuationStateJson,
+        updatedAt: new Date(),
+      })
+      .where(eq(demoThreads.id, id))
+      .returning();
+    return toThreadRow(rows[0]!);
+  }
+}
+
+function toProposal(
+  r: typeof publicationProposals.$inferSelect,
+): PublicationProposal {
+  return {
+    id: r.id,
+    threadId: r.threadId ?? null,
+    title: r.title,
+    body: r.body,
+    status: r.status as ProposalStatus,
+    createdAt: r.createdAt.toISOString(),
+    decidedAt: r.decidedAt ? r.decidedAt.toISOString() : null,
+  };
+}
+
+export class DrizzleProposalsRepo implements ProposalsRepo {
+  constructor(private db: Database) {}
+
+  async createProposal(
+    proposal: PublicationProposal,
+  ): Promise<PublicationProposal> {
+    const rows = await this.db
+      .insert(publicationProposals)
+      .values({
+        id: proposal.id,
+        threadId: proposal.threadId,
+        title: proposal.title,
+        body: proposal.body,
+        status: proposal.status,
+        createdAt: new Date(proposal.createdAt),
+        decidedAt: proposal.decidedAt ? new Date(proposal.decidedAt) : null,
+      })
+      .returning();
+    return toProposal(rows[0]!);
+  }
+
+  async getProposal(id: string): Promise<PublicationProposal | undefined> {
+    const rows = await this.db
+      .select()
+      .from(publicationProposals)
+      .where(eq(publicationProposals.id, id))
+      .limit(1);
+    return rows[0] ? toProposal(rows[0]) : undefined;
+  }
+
+  async setStatus(
+    id: string,
+    status: ProposalStatus,
+    decidedAt: string | null,
+  ): Promise<PublicationProposal> {
+    const rows = await this.db
+      .update(publicationProposals)
+      .set({ status, decidedAt: decidedAt ? new Date(decidedAt) : null })
+      .where(eq(publicationProposals.id, id))
+      .returning();
+    return toProposal(rows[0]!);
   }
 }

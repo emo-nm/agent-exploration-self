@@ -9,19 +9,29 @@
   },
   "scripts": {
     "build": "eve build",
-    "dev": "eve dev",
-    "start": "eve start",
-    "typecheck": "tsc"
+    "dev": "eve dev --no-ui --port 3001",
+    "start": "eve start --port 3001",
+    "typecheck": "tsc",
+    "test": "vitest run"
   },
   "dependencies": {
+    "@demo/contracts": "workspace:*",
+    "@demo/domain": "workspace:*",
+    "@demo/effects": "workspace:*",
+    "@demo/persistence": "workspace:*",
+    "@demo/prompts": "workspace:*",
     "@vercel/connect": "0.2.2",
     "ai": "^7.0.0",
+    "drizzle-orm": "^0.36.0",
     "eve": "^0.22.5",
+    "pg": "^8.13.0",
     "zod": "4.4.3"
   },
   "devDependencies": {
     "@types/node": "24.x",
-    "typescript": "7.0.2"
+    "just-bash": "*",
+    "typescript": "7.0.2",
+    "vitest": "^2.1.0"
   },
   "overrides": {
     "ai": "^7.0.0"
