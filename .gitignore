@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# builds
+dist/
+.next/
+out/
+.turbo/
+
+# env
+.env
+.env.local
+.env.*.local
+
+# smithers local state
+.smithers/*.sqlite
+.smithers/*.db
+
+# logs / misc
+*.log
+.DS_Store
+
+# conductor workspace scratch
+.context/
+
+# Smithers run store (ephemeral — never commit)
+smithers.db
+smithers.db-shm
+smithers.db-wal

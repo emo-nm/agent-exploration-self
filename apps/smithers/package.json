@@ -1,0 +1,11 @@
+{
+  "name": "smithers",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "echo \"[smithers] scaffold only — not yet implemented (port 7331)\"",
+    "build": "echo \"[smithers] no build step yet\"",
+    "typecheck": "echo \"[smithers] no typecheck yet\""
+  }
+}
