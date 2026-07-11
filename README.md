@@ -42,6 +42,6 @@ The web app deploys to Vercel. See [`docs/deployment.md`](./docs/deployment.md).
 
 ## Next steps
 
-Follow the implementation order in the handoff doc §23. Each app directory is a
+Follow the implementation order in the handoff doc section 23. Each app directory is a
 placeholder — initialize Eve, Flue, and Smithers with their own current scaffold
-tooling rather than hand-reproducing examples (§7, §24).
+tooling rather than hand-reproducing examples (section 7, section 24).

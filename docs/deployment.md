@@ -1,7 +1,7 @@
 # Deployment
 
 Scaffold notes. Fill in with measured details as services are implemented (see
-handoff §6 "Runtime topology" and §22 "Definition of done").
+handoff section 6 "Runtime topology" and section 22 "Definition of done").
 
 ## Topology
 

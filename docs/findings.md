@@ -2,7 +2,7 @@
 
 > Live results from running things first-hand in this repo. Docs claims are
 > marked [doc]; everything else here was observed [live]. Started from
-> `docs/findings-template.md` (§24). This first entry covers **Phase 1:
+> `docs/findings-template.md` (section 24). This first entry covers **Phase 1:
 > scaffolding only** — no demo agent / domain / UI logic yet.
 
 Last updated: **2026-07-11**
@@ -51,12 +51,12 @@ registry / auth was required.
   24, then contents moved into `apps/eve/`). `eve init --help` confirmed the CLI
   is non-interactive: only `--channel-web-nextjs` and `-y/--yes` flags exist
   (and `--yes` is a documented no-op accepted "for compatibility"). Matches
-  handoff §7 (`npx eve@latest init <directory>`).
+  handoff section 7 (`npx eve@latest init <directory>`).
 - **Version landed:** `eve@0.22.5`.
 - **Generated layout (preserved):** `agent/agent.ts`, `agent/instructions.md`,
   `agent/channels/eve.ts`, plus `package.json`, `tsconfig.json`, `AGENTS.md`,
   `CLAUDE.md`, `.gitignore`, `.vercelignore`. This is the filesystem-first
-  `agent/` layout the handoff §5/§11 anticipated — kept as-is inside `apps/eve`.
+  `agent/` layout the handoff section 5/section 11 anticipated — kept as-is inside `apps/eve`.
 - **Deviations / friction:**
   - Scaffold assumes it owns the project root: it emitted its own `.git`,
     `package-lock.json` (npm, not pnpm), and `node_modules`. Removed all three
@@ -72,7 +72,7 @@ registry / auth was required.
 
 ### Flue — `apps/flue/`
 
-- **Commands used (exactly per handoff §7 / quickstart):** inside `apps/flue`:
+- **Commands used (exactly per handoff section 7 / quickstart):** inside `apps/flue`:
   `pnpm add @flue/runtime`, `pnpm add -D @flue/cli`, `pnpm exec flue init
   --target node`. `flue init` is non-interactive by design (`--target` is a
   required flag; `--force` to overwrite). Run under Node 22.20.0.
@@ -126,7 +126,7 @@ registry / auth was required.
 
 - **Command used:** `bunx smithers-orchestrator init --yes --no-skill` from repo
   root. `--yes`/`--non-interactive` is a first-class flag (safe for agents/CI).
-  Matches handoff §7 (`bunx smithers-orchestrator init`). Did NOT select
+  Matches handoff section 7 (`bunx smithers-orchestrator init`). Did NOT select
   Codex-only; installed the full default pack (agents for claude-code, codex,
   opencode, antigravity).
 - **Version landed:** `smithers-orchestrator@0.27.0`,
@@ -136,7 +136,7 @@ registry / auth was required.
   `gateway.ts`). It ran its own `bun install` inside `.smithers/` (own
   `bun.lock`, 379 pkgs). `.smithers/package.json` is name `smithers-workflows`,
   Bun/React-based. Correctly **outside** the pnpm workspace globs
-  (`apps/*`, `packages/*`), so root pnpm ignores it — matches handoff §6
+  (`apps/*`, `packages/*`), so root pnpm ignores it — matches handoff section 6
   (Smithers runs under Bun).
 - **Deviations / friction:**
   - **`--no-skill` did not fully suppress skill install:** it still printed
@@ -149,7 +149,7 @@ registry / auth was required.
     (`smithers.db`, `.smithers/*.sqlite`, etc.) — expected/benign.
   - `bun install` reported "Blocked 2 postinstalls" (untrusted) and a peer
     warning `typescript@7.0.2`. Not investigated (scaffold phase).
-  - Note: `apps/smithers/` (the Gateway/HTTP control-plane app, handoff §5)
+  - Note: `apps/smithers/` (the Gateway/HTTP control-plane app, handoff section 5)
     still holds only its placeholder — the control-plane app is later work; this
     task only initialized the `.smithers/` authoring pack per item 5.
 
@@ -169,3 +169,50 @@ registry / auth was required.
   `turbo run typecheck` behaves across the mixed TS majors.
 - Smithers global-skill side effect from `--no-skill` — cosmetic here, but note
   it mutates `~/.claude` outside the repo.
+
+---
+
+# Phase 2 — shared framework-neutral layer (2026-07-11)
+
+Built with no Eve/Flue/Mastra/Smithers imports anywhere (verified by grep).
+~1.1k LOC of TS across packages. `pnpm -r build` and `pnpm test` pass at root
+(19 tests: contracts 8, effects 4, domain 7 — no live DB, no network).
+
+## What was built
+
+- **@demo/contracts** — zod v4 schemas: research-request/plan/result,
+  publication-proposal/receipt, normalized agent-event union with `raw`
+  passthrough. zod 4 API worked without friction (no v3 patterns needed).
+- **@demo/persistence** — Drizzle schema for demo_threads (backend enum incl.
+  `mastra`), publication_proposals, publication_effects (UNIQUE idempotency
+  key), comparison_runs. node-postgres client + drizzle-kit config + initial
+  migration in `drizzle/`. Small repo interface (`repo.ts`) with a
+  `memory-repo.ts` in-memory double so effects/domain tests run with no DB.
+  TODO: neon-http client for Vercel functions.
+- **@demo/effects** — `publishArtifact` with injected repo deps: attempt
+  counting, `DEMO_FAIL_PUBLISH_ATTEMPTS` failure injection, insert-or-retrieve
+  by idempotency key (duplicate call → identical receipt, `created:false`),
+  guarded `DEMO_CRASH_AFTER_EFFECT` process-exit hook.
+- **@demo/domain** — create-research-plan, search-fixture-corpus
+  (deterministic embedded corpus + keyword scoring), create-draft,
+  create-publication-proposal, approve-proposal, publish-artifact
+  orchestration. Pure functions over contracts types.
+- **@demo/prompts** — canonical instructions + shared research-and-publish
+  SKILL.md content, so every framework gets the identical brain.
+- **@demo/evals** — canonical test prompts + scoring stub (harness later).
+
+## Friction / deviations
+
+- `apps/mastra` stock scaffold ships `"test": "exit 1"`, which fails
+  `turbo run test` at root. Removed the stub script (smallest deviation from
+  stock; noted here per the fighting-the-framework rule).
+- Tests verified idempotency/failure-injection against the in-memory repo
+  only; the Drizzle repo path is untested until a real `DATABASE_URL`
+  (Neon) exists.
+
+## Next phase needs to know
+
+- Frameworks wrap domain functions thinly: validate with contracts schema →
+  call domain fn with repo from persistence. Effects deps are injected.
+- Approval is application-owned: proposals table status flip, not
+  framework-native approval, for the baseline.

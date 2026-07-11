@@ -9,9 +9,16 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@demo/contracts": "workspace:*",
+    "@demo/effects": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "^5.6.0"
+    "@demo/persistence": "workspace:*",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
   }
 }

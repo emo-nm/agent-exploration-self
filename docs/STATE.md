@@ -4,9 +4,10 @@
 > truth; open the linked code/notes before relying on a row. If your session
 > changes the verdicts or the code, update this file in the same commit.
 
-Last updated: **2026-07-11** (official framework scaffolds in place; root
-`pnpm install` passes. Still no agent/domain/UI logic — scaffold only.
-`apps/mastra` now exists. Scaffold details + friction: [`findings.md`](findings.md).)
+Last updated: **2026-07-11** (scaffolds + shared framework-neutral layer
+done: contracts/persistence/effects/domain/prompts/evals built and tested
+[live], 19 tests pass with no DB. No framework agent code or UI yet.
+Details: [`findings.md`](findings.md); annotated roadmap: [`plan.md`](plan.md).)
 
 ## What this is
 
@@ -25,8 +26,10 @@ decision memo is the product. Parent context:
 | Topic | Authoritative source | Status |
 |---|---|---|
 | The full plan: systems model, integration patterns, layout, demo agent spec, test matrix | [`docs/eve-flue-smithers-codex-handoff.md`](eve-flue-smithers-codex-handoff.md) | [doc] current — the spec this repo is built from |
-| Ownership rule (never nest durability: Smithers-owned run XOR Eve/Flue-owned session) | handoff §4 | [doc] standing constraint |
-| Shared demo agent (same toy in each framework, so comparison is fair) | handoff §8 | [doc] specced, not built |
+| Annotated roadmap (phases, what each step buys, status) | [`plan.md`](plan.md) | current — derived from handoff section 23 |
+| Shared framework-neutral layer (contracts, persistence, effects, domain, prompts, evals) | `packages/*` + findings.md Phase 2 | [live] built + unit-tested (in-memory repo; Drizzle path untested until Neon `DATABASE_URL` exists) |
+| Ownership rule (never nest durability: Smithers-owned run XOR Eve/Flue-owned session) | handoff section 4 | [doc] standing constraint |
+| Shared demo agent (same toy in each framework, so comparison is fair) | handoff section 8 | [doc] specced, not built |
 | Architecture / deployment / test plan | [`architecture.md`](architecture.md), [`deployment.md`](deployment.md), [`test-plan.md`](test-plan.md) | placeholders — derive from handoff |
 | Findings per framework | [`findings.md`](findings.md) (from `findings-template.md`) | Phase 1 (scaffold) recorded per candidate |
 

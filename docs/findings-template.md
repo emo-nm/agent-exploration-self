@@ -1,12 +1,12 @@
 # Findings (template)
 
-Copy to `docs/findings.md` and update at the end of every phase (§24). Record
+Copy to `docs/findings.md` and update at the end of every phase (section 24). Record
 measured data, not impressions. Keep framework behavior separate from model
-variance (§20).
+variance (section 20).
 
 ## Resolved package versions
 
-Pin exact resolved versions from the lockfile here (§7 version policy).
+Pin exact resolved versions from the lockfile here (section 7 version policy).
 
 | Package | Version |
 | ------- | ------- |
@@ -29,7 +29,7 @@ For each phase, capture:
 
 ## Evaluation metrics
 
-See §20. Implementation, Runtime, Developer experience, Portability.
+See section 20. Implementation, Runtime, Developer experience, Portability.
 
 ## Skill authoring & discovery (criterion 7, added 07-11)
 
