@@ -44,6 +44,11 @@ decision memo is the product. Parent context:
    discovered, and composed; hot-reload; what the framework's equivalent even
    is if it lacks a first-class "skill" concept (suspected for Mastra — that
    absence is itself a finding)
+8. Auth story (added 07-11) — end-user identity on sessions (can user A
+   resume user B's thread?), service-to-service auth, and connection/OAuth
+   handling for external tools. Eve's Vercel-integrated auth looks [doc]
+   convenient — verify live, and weigh it against lock-in (criterion 5):
+   the more auth the framework owns, the harder the walk-away
 
 ## Verdict so far
 
