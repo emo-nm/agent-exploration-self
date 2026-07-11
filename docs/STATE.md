@@ -62,7 +62,7 @@ untested · **[inf]** = inferred. Only [live] counts for the final memo.
 |---|---|---|---|
 | Eve (direct) | official scaffold in place (`eve@0.22.5`, `npx eve init`); root `pnpm install` passes | — | scaffolded under Node 24; findings.md |
 | Flue (direct) | official scaffold in place (`@flue/runtime`+`@flue/cli` `1.0.0-beta.9`, `flue init --target node`); install passes | — | `flue init` writes only `flue.config.ts` — agent code is hand-authored; findings.md |
-| Mastra (direct) | `apps/mastra` now exists; official scaffold in place (`create-mastra --default`, `@mastra/core@1.50.1`); install passes | [doc] claims durable workflows w/ suspend/resume, zod tools, built-in evals — verify live. Note zod@3-vs-4 peer warning to resolve | scaffolded under Node 24; findings.md |
+| Mastra (direct) | baseline **built** — research-and-publish agent + native subagent + 4 thin tools + `@demo/mastra-adapter`; typecheck/tests/build pass, server to :3003 health [live] | [live] zod@4.4.3 works (peer warning only); native subagents + tool suspend/resume approval; NO SKILL.md concept (criterion 7 finding); Apache-2.0; ships scorers+observability. Model run + Drizzle path blocked (no keys/DB). See [`log/2026-07-11-mastra-baseline-notes.md`](log/2026-07-11-mastra-baseline-notes.md) | scaffolded Node 24; baseline notes |
 | Smithers orchestrating Eve/Flue (pattern A) | not started — blocked on direct baselines (test-plan) | — | — |
 | Eve/Flue launching bounded Smithers job (pattern B) | not started — same gate | — | — |
 

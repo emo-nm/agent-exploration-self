@@ -49,6 +49,21 @@ importers:
 
   apps/mastra:
     dependencies:
+      '@demo/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@demo/domain':
+        specifier: workspace:*
+        version: link:../../packages/domain
+      '@demo/effects':
+        specifier: workspace:*
+        version: link:../../packages/effects
+      '@demo/persistence':
+        specifier: workspace:*
+        version: link:../../packages/persistence
+      '@demo/prompts':
+        specifier: workspace:*
+        version: link:../../packages/prompts
       '@mastra/core':
         specifier: ^1.50.1
         version: 1.50.1(express@5.2.1)(zod@4.4.3)
@@ -79,10 +94,13 @@ importers:
         version: 26.1.1
       mastra:
         specifier: ^1.18.2
-        version: 1.18.2(@hono/node-server@2.0.8(hono@4.12.29))(@mastra/core@1.50.1(express@5.2.1)(zod@4.4.3))(typescript@7.0.2)(zod@4.4.3)
+        version: 1.18.2(@hono/node-server@2.0.8(hono@4.12.29))(@mastra/core@1.50.1(express@5.2.1)(zod@4.4.3))(typescript@5.9.3)(zod@4.4.3)
       typescript:
-        specifier: ^7.0.2
-        version: 7.0.2
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.0
+        version: 2.1.9(@types/node@26.1.1)(lightningcss@1.32.0)
 
   apps/smithers: {}
 
@@ -180,6 +198,19 @@ importers:
       typescript:
         specifier: ^5.6.0
         version: 5.9.3
+
+  packages/mastra-adapter:
+    dependencies:
+      '@demo/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+    devDependencies:
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.0
+        version: 2.1.9(@types/node@26.1.1)(lightningcss@1.32.0)
 
   packages/persistence:
     dependencies:
@@ -6597,7 +6628,7 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@mastra/deployer@1.50.1(@hono/node-server@2.0.8(hono@4.12.29))(@mastra/core@1.50.1(express@5.2.1)(zod@4.4.3))(typescript@7.0.2)(zod@4.4.3)':
+  '@mastra/deployer@1.50.1(@hono/node-server@2.0.8(hono@4.12.29))(@mastra/core@1.50.1(express@5.2.1)(zod@4.4.3))(typescript@5.9.3)(zod@4.4.3)':
     dependencies:
       '@babel/core': 7.29.7
       '@babel/preset-typescript': 7.29.7(@babel/core@7.29.7)
@@ -6626,7 +6657,7 @@ snapshots:
       rollup-plugin-esbuild: 6.2.1(esbuild@0.28.1)(rollup@4.62.2)
       strip-json-comments: 5.0.3
       tinyglobby: 0.2.17
-      typescript-paths: 1.5.2(typescript@7.0.2)
+      typescript-paths: 1.5.2(typescript@5.9.3)
       ws: 8.21.0
     transitivePeerDependencies:
       - '@hono/node-server'
@@ -8625,14 +8656,14 @@ snapshots:
 
   markdown-table@3.0.4: {}
 
-  mastra@1.18.2(@hono/node-server@2.0.8(hono@4.12.29))(@mastra/core@1.50.1(express@5.2.1)(zod@4.4.3))(typescript@7.0.2)(zod@4.4.3):
+  mastra@1.18.2(@hono/node-server@2.0.8(hono@4.12.29))(@mastra/core@1.50.1(express@5.2.1)(zod@4.4.3))(typescript@5.9.3)(zod@4.4.3):
     dependencies:
       '@babel/parser': 7.29.7
       '@babel/types': 7.29.7
       '@clack/prompts': 1.7.0
       '@expo/devcert': 1.2.1
       '@mastra/core': 1.50.1(express@5.2.1)(zod@4.4.3)
-      '@mastra/deployer': 1.50.1(@hono/node-server@2.0.8(hono@4.12.29))(@mastra/core@1.50.1(express@5.2.1)(zod@4.4.3))(typescript@7.0.2)(zod@4.4.3)
+      '@mastra/deployer': 1.50.1(@hono/node-server@2.0.8(hono@4.12.29))(@mastra/core@1.50.1(express@5.2.1)(zod@4.4.3))(typescript@5.9.3)(zod@4.4.3)
       '@mastra/loggers': 1.2.0(@mastra/core@1.50.1(express@5.2.1)(zod@4.4.3))
       archiver: 8.0.0
       commander: 14.0.3
@@ -10032,9 +10063,9 @@ snapshots:
 
   typebox@1.1.38: {}
 
-  typescript-paths@1.5.2(typescript@7.0.2):
+  typescript-paths@1.5.2(typescript@5.9.3):
     dependencies:
-      typescript: 7.0.2
+      typescript: 5.9.3
 
   typescript@5.9.3: {}
 

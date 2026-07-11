@@ -28,3 +28,63 @@ export interface EffectsRepo {
   /** Persist the committed result and return the updated row. */
   saveResult(id: string, resultJson: unknown): Promise<PublicationEffectRow>;
 }
+
+// --- proposals (application-owned approval flow, handoff §17) ---
+
+export type ProposalStatus = "pending" | "approved" | "denied" | "published";
+
+export interface ProposalRow {
+  id: string;
+  threadId: string | null;
+  title: string;
+  body: string;
+  status: ProposalStatus;
+  createdAt: string;
+  decidedAt: string | null;
+}
+
+export interface CreateProposalInput {
+  id: string;
+  threadId: string | null;
+  title: string;
+  body: string;
+  status?: ProposalStatus;
+  createdAt?: string;
+}
+
+export interface ProposalsRepo {
+  createProposal(input: CreateProposalInput): Promise<ProposalRow>;
+  getProposal(id: string): Promise<ProposalRow | undefined>;
+  /** Update status (+ decidedAt when moving out of pending); returns the row. */
+  setProposalStatus(
+    id: string,
+    status: ProposalStatus,
+    decidedAt?: string | null,
+  ): Promise<ProposalRow>;
+}
+
+// --- threads (app thread id → framework session/thread/resource ids, §11) ---
+
+export type Backend = "eve" | "flue" | "mastra";
+
+export interface ThreadRow {
+  id: string;
+  backend: Backend;
+  externalSessionId: string | null;
+  continuationStateJson: unknown | null;
+}
+
+export interface UpsertThreadInput {
+  id: string;
+  backend: Backend;
+  externalSessionId?: string | null;
+  continuationStateJson?: unknown | null;
+}
+
+export interface ThreadsRepo {
+  upsertThread(input: UpsertThreadInput): Promise<ThreadRow>;
+  getThread(id: string): Promise<ThreadRow | undefined>;
+}
+
+/** The full application repo surface used by framework adapters/tools. */
+export interface DemoRepo extends EffectsRepo, ProposalsRepo, ThreadsRepo {}

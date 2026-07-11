@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "mastra dev",
     "build": "mastra build",
-    "start": "mastra start"
+    "start": "mastra start",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +18,11 @@
     "node": ">=22.13.0"
   },
   "dependencies": {
+    "@demo/contracts": "workspace:*",
+    "@demo/domain": "workspace:*",
+    "@demo/effects": "workspace:*",
+    "@demo/persistence": "workspace:*",
+    "@demo/prompts": "workspace:*",
     "@mastra/core": "^1.50.1",
     "@mastra/duckdb": "^1.5.1",
     "@mastra/evals": "^1.5.1",
@@ -28,6 +35,7 @@
   "devDependencies": {
     "@types/node": "^26.1.1",
     "mastra": "^1.18.2",
-    "typescript": "^7.0.2"
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.0"
   }
 }
