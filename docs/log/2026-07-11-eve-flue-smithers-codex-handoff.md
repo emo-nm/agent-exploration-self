@@ -1,5 +1,11 @@
 # Eve vs. Flue Evaluation Repo — Codex Handoff
 
+> Historical handoff (2026-07-11 snapshot; predates Mastra joining scope).
+> Still the most detailed spec for unbuilt phases, but not maintained: the
+> living plan is docs/plan.md, and each section gets promoted into
+> docs/architecture.md / docs/test-plan.md / docs/deployment.md as its phase
+> starts. When this doc and a living doc disagree, the living doc wins.
+
 **Date:** July 11, 2026  
 **Goal:** Build one repository that compares Eve and Flue as product-agent frameworks, while also demonstrating how Smithers can orchestrate either framework and how either framework can launch a bounded Smithers workflow.
 

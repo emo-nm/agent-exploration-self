@@ -11,7 +11,7 @@ Details: [`findings.md`](findings.md); annotated roadmap: [`plan.md`](plan.md).)
 
 ## What this is
 
-Spike repo serving **INT-27** on the Native sprint board (the agent-framework
+Evaluation repo serving **INT-27** on the Native sprint board (the agent-framework
 decision, which also absorbs CORE-02): compare **Eve**, **Flue**, and
 **Mastra** (added 07-10) as durable product-agent frameworks, and test how
 **Smithers** orchestrates them (and how they launch a bounded Smithers job). Hands-on, deployed to Vercel —
@@ -25,7 +25,7 @@ decision memo is the product. Parent context:
 
 | Topic | Authoritative source | Status |
 |---|---|---|
-| The full plan: systems model, integration patterns, layout, demo agent spec, test matrix | [`docs/eve-flue-smithers-codex-handoff.md`](eve-flue-smithers-codex-handoff.md) | [doc] current — the spec this repo is built from |
+| Original detailed spec (systems model, integration patterns, demo agent, test matrix) | [`docs/log/2026-07-11-eve-flue-smithers-codex-handoff.md`](log/2026-07-11-eve-flue-smithers-codex-handoff.md) | historical — content promoted into architecture/test-plan/deployment per phase; living docs win on conflict |
 | Annotated roadmap (phases, what each step buys, status) | [`plan.md`](plan.md) | current — derived from handoff section 23 |
 | Shared framework-neutral layer (contracts, persistence, effects, domain, prompts, evals) | `packages/*` + findings.md Phase 2 | [live] built + unit-tested (in-memory repo; Drizzle path untested until Neon `DATABASE_URL` exists) |
 | Ownership rule (never nest durability: Smithers-owned run XOR Eve/Flue-owned session) | handoff section 4 | [doc] standing constraint |

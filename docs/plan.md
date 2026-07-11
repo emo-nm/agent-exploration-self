@@ -1,17 +1,17 @@
 # Annotated roadmap — what each phase buys us
 
-The granular plan is the handoff ([`eve-flue-smithers-codex-handoff.md`](eve-flue-smithers-codex-handoff.md),
+The granular plan is the handoff ([`eve-flue-smithers-codex-handoff.md`](log/2026-07-11-eve-flue-smithers-codex-handoff.md),
 section 23); this doc annotates it with *the point of each step* and tracks
 status. Update status markers here (and STATE.md) as phases land.
 
-## Phase 0 — Scaffolds ✅ (commit `b644873`)
+## Phase 0 — Scaffolds [done] (commit `b644873`)
 
 **1. Scaffold monorepo + all frameworks with stock defaults.**
 Fair starting line + first data: scaffold friction, versions, Node floors are
 already findings (Flue's init writes one config file; Mastra ships a full demo
 agent; Eve wants Node 24).
 
-## Phase 1 — Shared framework-neutral layer ✅ (findings.md Phase 2)
+## Phase 1 — Shared framework-neutral layer [done] (findings.md Phase 2)
 
 **2. Contracts, domain, persistence.**
 Everything that isn't framework glue is written once. Same zod schemas → tool
@@ -26,7 +26,7 @@ are repeatable; the flaky-but-idempotent publish (`DEMO_FAIL_PUBLISH_ATTEMPTS`,
 crash-after-effect) is the probe jabbed into each framework to observe
 retry/durability behavior. Idempotency keys are what make that safe to test.
 
-## Phase 2 — Direct baselines (the core comparison) ⬜
+## Phase 2 — Direct baselines (the core comparison) [todo]
 
 **4. Eve baseline** — research-and-publish agent in Eve's native idiom
 (filesystem `agent/`, durable session API, typed client).
@@ -53,7 +53,7 @@ thread, duplicate approvals/publishes (8 scenarios, test-plan). Exactly-once
 publication is the pass/fail line. **GATE: no Smithers work until direct Eve
 and Flue pass** — otherwise integration bugs are unattributable.
 
-## Phase 3 — Smithers integration (both directions) ⬜
+## Phase 3 — Smithers integration (both directions) [todo]
 
 **8. Initialize the Smithers control plane** (`apps/smithers` HTTP/Gateway;
 `.smithers/` authoring pack already exists).
@@ -75,7 +75,7 @@ Pattern B: the realistic production topology (product agent delegates a
 bounded long job). Tests the section-4 ownership rule under fire: parent
 session stays live, child run does the work, nobody double-retries an effect.
 
-## Phase 4 — Ship and decide ⬜
+## Phase 4 — Ship and decide [todo]
 
 **12. Deployment configs** — web+Eve on Vercel, Flue on a Node host,
 Smithers on a Bun container, shared Neon Postgres.

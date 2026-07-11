@@ -6,7 +6,7 @@ frameworks, and demonstrating how **Smithers** can orchestrate either framework
 
 > **Status: scaffold only.** This commit lays out the monorepo skeleton and
 > Vercel wiring. No agent, domain, or UI logic is implemented yet. The full plan
-> lives in [`docs/eve-flue-smithers-codex-handoff.md`](./docs/eve-flue-smithers-codex-handoff.md).
+> lives in [`docs/log/2026-07-11-eve-flue-smithers-codex-handoff.md`](./docs/log/2026-07-11-eve-flue-smithers-codex-handoff.md).
 
 ## Layout
 
