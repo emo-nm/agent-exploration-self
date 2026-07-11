@@ -32,8 +32,12 @@ retry/durability behavior. Idempotency keys are what make that safe to test.
 (filesystem `agent/`, durable session API, typed client).
 **5. Flue baseline** — identical agent in Flue's idiom (hand-authored;
 its scaffold is minimal).
-**5b. Mastra baseline** — our addition; needs the demo-agent spec extended
-to `apps/mastra` first.
+**5b. Mastra baseline** [built] — research-and-publish agent in Mastra's native
+idiom (agents + tools + native subagent via `agents` field + Memory); tools thin
+over the shared layer; `@demo/mastra-adapter` added; app-owned approval (native
+tool suspend/resume noted as the alternative). typecheck/tests/build pass, server
+to :3003 health. Model run + Drizzle path blocked on keys/DB. Notes:
+`docs/log/2026-07-11-mastra-baseline-notes.md`.
 The experiment itself: same brain (shared prompts/skill), same tools, same DB
 — only the framework differs. Directly scores criteria 1–4, 7, 8 (sessions,
 approvals, tool typing, observability, skills, auth). Eve's auth/Connect
