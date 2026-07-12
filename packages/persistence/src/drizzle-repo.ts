@@ -1,6 +1,7 @@
 // Drizzle-backed EffectsRepo for runtime use against Postgres.
 // Not exercised by tests (they use InMemoryEffectsRepo) but must typecheck.
 import { eq, sql } from "drizzle-orm";
+import type { PublicationProposal, ProposalStatus } from "@demo/contracts";
 import type { Database } from "./client.js";
 import {
   demoThreads,
@@ -12,11 +13,11 @@ import type {
   CreateEffectInput,
   CreateProposalInput,
   DemoRepo,
+  DemoThreadRow,
   EffectsRepo,
-  ProposalRow,
-  ProposalStatus,
+  ProposalsRepo,
   PublicationEffectRow,
-  ThreadRow,
+  ThreadsRepo,
   UpsertThreadInput,
 } from "./repo.js";
 
@@ -82,9 +83,10 @@ export class DrizzleEffectsRepo implements EffectsRepo {
   }
 }
 
-function toProposalRow(
+
+function toProposal(
   r: typeof publicationProposals.$inferSelect,
-): ProposalRow {
+): PublicationProposal {
   return {
     id: r.id,
     threadId: r.threadId ?? null,
@@ -96,7 +98,7 @@ function toProposalRow(
   };
 }
 
-function toThreadRow(r: typeof demoThreads.$inferSelect): ThreadRow {
+function toThreadRow(r: typeof demoThreads.$inferSelect): DemoThreadRow {
   return {
     id: r.id,
     backend: r.backend as Backend,
@@ -105,17 +107,11 @@ function toThreadRow(r: typeof demoThreads.$inferSelect): ThreadRow {
   };
 }
 
-/**
- * Drizzle-backed DemoRepo. Runtime path when DATABASE_URL is set. Not exercised
- * by tests (they use InMemoryDemoRepo) but must typecheck.
- */
-export class DrizzleDemoRepo extends DrizzleEffectsRepo implements DemoRepo {
-  constructor(private database: Database) {
-    super(database);
-  }
+export class DrizzleProposalsRepo implements ProposalsRepo {
+  constructor(private db: Database) {}
 
-  async createProposal(input: CreateProposalInput): Promise<ProposalRow> {
-    const rows = await this.database
+  async createProposal(input: CreateProposalInput): Promise<PublicationProposal> {
+    const rows = await this.db
       .insert(publicationProposals)
       .values({
         id: input.id,
@@ -126,25 +122,24 @@ export class DrizzleDemoRepo extends DrizzleEffectsRepo implements DemoRepo {
         ...(input.createdAt ? { createdAt: new Date(input.createdAt) } : {}),
       })
       .returning();
-    return toProposalRow(rows[0]!);
+    return toProposal(rows[0]!);
   }
 
-  async getProposal(id: string): Promise<ProposalRow | undefined> {
-    const rows = await this.database
+  async getProposal(id: string): Promise<PublicationProposal | undefined> {
+    const rows = await this.db
       .select()
       .from(publicationProposals)
       .where(eq(publicationProposals.id, id))
       .limit(1);
-    const r = rows[0];
-    return r ? toProposalRow(r) : undefined;
+    return rows[0] ? toProposal(rows[0]) : undefined;
   }
 
   async setProposalStatus(
     id: string,
     status: ProposalStatus,
     decidedAt?: string | null,
-  ): Promise<ProposalRow> {
-    const rows = await this.database
+  ): Promise<PublicationProposal> {
+    const rows = await this.db
       .update(publicationProposals)
       .set({
         status,
@@ -154,11 +149,15 @@ export class DrizzleDemoRepo extends DrizzleEffectsRepo implements DemoRepo {
       })
       .where(eq(publicationProposals.id, id))
       .returning();
-    return toProposalRow(rows[0]!);
+    return toProposal(rows[0]!);
   }
+}
 
-  async upsertThread(input: UpsertThreadInput): Promise<ThreadRow> {
-    const rows = await this.database
+export class DrizzleThreadsRepo implements ThreadsRepo {
+  constructor(private db: Database) {}
+
+  async upsertThread(input: UpsertThreadInput): Promise<DemoThreadRow> {
+    const rows = await this.db
       .insert(demoThreads)
       .values({
         id: input.id,
@@ -178,13 +177,84 @@ export class DrizzleDemoRepo extends DrizzleEffectsRepo implements DemoRepo {
     return toThreadRow(rows[0]!);
   }
 
-  async getThread(id: string): Promise<ThreadRow | undefined> {
-    const rows = await this.database
+  async createThread(input: {
+    id: string;
+    backend: Backend;
+  }): Promise<DemoThreadRow> {
+    const rows = await this.db
+      .insert(demoThreads)
+      .values({ id: input.id, backend: input.backend })
+      .onConflictDoNothing()
+      .returning();
+    if (rows[0]) return toThreadRow(rows[0]);
+    const existing = await this.getThread(input.id);
+    if (!existing) throw new Error(`failed to create thread ${input.id}`);
+    return existing;
+  }
+
+  async getThread(id: string): Promise<DemoThreadRow | undefined> {
+    const rows = await this.db
       .select()
       .from(demoThreads)
       .where(eq(demoThreads.id, id))
       .limit(1);
-    const r = rows[0];
-    return r ? toThreadRow(r) : undefined;
+    return rows[0] ? toThreadRow(rows[0]) : undefined;
+  }
+
+  async saveContinuation(
+    id: string,
+    args: { externalSessionId: string | null; continuationStateJson: unknown },
+  ): Promise<DemoThreadRow> {
+    const rows = await this.db
+      .update(demoThreads)
+      .set({
+        externalSessionId: args.externalSessionId,
+        continuationStateJson: args.continuationStateJson,
+        updatedAt: new Date(),
+      })
+      .where(eq(demoThreads.id, id))
+      .returning();
+    return toThreadRow(rows[0]!);
+  }
+}
+
+/**
+ * Drizzle-backed DemoRepo. Runtime path when DATABASE_URL is set. Composes the
+ * granular Drizzle repos so all share the merged interface.
+ */
+export class DrizzleDemoRepo extends DrizzleEffectsRepo implements DemoRepo {
+  private proposals: DrizzleProposalsRepo;
+  private threads: DrizzleThreadsRepo;
+
+  constructor(db: Database) {
+    super(db);
+    this.proposals = new DrizzleProposalsRepo(db);
+    this.threads = new DrizzleThreadsRepo(db);
+  }
+
+  createProposal(input: CreateProposalInput) {
+    return this.proposals.createProposal(input);
+  }
+  getProposal(id: string) {
+    return this.proposals.getProposal(id);
+  }
+  setProposalStatus(id: string, status: ProposalStatus, decidedAt?: string | null) {
+    return this.proposals.setProposalStatus(id, status, decidedAt);
+  }
+
+  upsertThread(input: UpsertThreadInput) {
+    return this.threads.upsertThread(input);
+  }
+  createThread(input: { id: string; backend: Backend }) {
+    return this.threads.createThread(input);
+  }
+  getThread(id: string) {
+    return this.threads.getThread(id);
+  }
+  saveContinuation(
+    id: string,
+    args: { externalSessionId: string | null; continuationStateJson: unknown },
+  ) {
+    return this.threads.saveContinuation(id, args);
   }
 }

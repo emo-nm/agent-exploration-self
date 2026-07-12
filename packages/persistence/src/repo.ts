@@ -1,6 +1,7 @@
 // The small persistence interface the effects package depends on.
 // Framework-neutral. Implemented by both the in-memory double (tests) and
 // the Drizzle/Postgres repo (runtime).
+import type { PublicationProposal, ProposalStatus } from "@demo/contracts";
 
 export interface PublicationEffectRow {
   id: string;
@@ -29,19 +30,10 @@ export interface EffectsRepo {
   saveResult(id: string, resultJson: unknown): Promise<PublicationEffectRow>;
 }
 
-// --- proposals (application-owned approval flow, handoff §17) ---
-
-export type ProposalStatus = "pending" | "approved" | "denied" | "published";
-
-export interface ProposalRow {
-  id: string;
-  threadId: string | null;
-  title: string;
-  body: string;
-  status: ProposalStatus;
-  createdAt: string;
-  decidedAt: string | null;
-}
+// --- Proposals: application-owned approval flow (handoff §17) ---
+// The row type is the shared @demo/contracts `PublicationProposal` (structurally
+// identical). `ProposalRow` is kept as a compat alias for existing call sites.
+export type ProposalRow = PublicationProposal;
 
 export interface CreateProposalInput {
   id: string;
@@ -53,26 +45,30 @@ export interface CreateProposalInput {
 }
 
 export interface ProposalsRepo {
-  createProposal(input: CreateProposalInput): Promise<ProposalRow>;
-  getProposal(id: string): Promise<ProposalRow | undefined>;
+  createProposal(input: CreateProposalInput): Promise<PublicationProposal>;
+  getProposal(id: string): Promise<PublicationProposal | undefined>;
   /** Update status (+ decidedAt when moving out of pending); returns the row. */
   setProposalStatus(
     id: string,
     status: ProposalStatus,
     decidedAt?: string | null,
-  ): Promise<ProposalRow>;
+  ): Promise<PublicationProposal>;
 }
 
-// --- threads (app thread id → framework session/thread/resource ids, §11) ---
-
+// --- Threads: app thread <-> framework session mapping (handoff §10, §11) ---
+// `continuationStateJson` holds the framework's resume handle (for Eve, the
+// serialized `SessionState` cursor). `externalSessionId` is the framework's
+// own session/run id, surfaced for stream attach and debugging.
 export type Backend = "eve" | "flue" | "mastra";
 
-export interface ThreadRow {
+export interface DemoThreadRow {
   id: string;
   backend: Backend;
   externalSessionId: string | null;
   continuationStateJson: unknown | null;
 }
+/** Compat alias for the thread row type. */
+export type ThreadRow = DemoThreadRow;
 
 export interface UpsertThreadInput {
   id: string;
@@ -82,8 +78,16 @@ export interface UpsertThreadInput {
 }
 
 export interface ThreadsRepo {
-  upsertThread(input: UpsertThreadInput): Promise<ThreadRow>;
-  getThread(id: string): Promise<ThreadRow | undefined>;
+  /** Insert-or-update a thread row (full control over session fields). */
+  upsertThread(input: UpsertThreadInput): Promise<DemoThreadRow>;
+  /** Insert a thread row, or return the existing one for this id. */
+  createThread(input: { id: string; backend: Backend }): Promise<DemoThreadRow>;
+  getThread(id: string): Promise<DemoThreadRow | undefined>;
+  /** Persist the framework session handle onto the thread row. */
+  saveContinuation(
+    id: string,
+    args: { externalSessionId: string | null; continuationStateJson: unknown },
+  ): Promise<DemoThreadRow>;
 }
 
 /** The full application repo surface used by framework adapters/tools. */

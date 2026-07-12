@@ -216,3 +216,23 @@ Built with no Eve/Flue/Mastra/Smithers imports anywhere (verified by grep).
   call domain fn with repo from persistence. Effects deps are injected.
 - Approval is application-owned: proposals table status flip, not
   framework-native approval, for the baseline.
+
+---
+
+# Phase 3 — direct baselines built in all three frameworks (2026-07-11)
+
+Same research-and-publish agent (shared brain from @demo/prompts, thin tools
+over @demo/domain//@demo/effects, app-owned approval) implemented in Eve,
+Flue, and Mastra native idioms, plus typed adapter packages for the web app.
+Built in parallel isolated worktrees; persistence APIs unified on merge
+(DemoRepo + createDemoRepo(); setProposalStatus canonical). All: root
+typecheck 15/15, tests 8/8 tasks (eve 5, flue 6, mastra 6 new), build 5/5.
+Drizzle path verified [live] against local Postgres 17 (brew). Model loop
+NOT run anywhere — no API key yet — durability matrix pending.
+
+Per-framework details + criteria notes (skills, auth, license):
+- docs/log/2026-07-11-eve-baseline-notes.md (sandbox pin + build friction)
+- docs/log/2026-07-11-flue-baseline-notes.md (valibot/zod tax, build-output
+  module issue, SQLite dev-reload loop)
+- docs/log/2026-07-11-mastra-baseline-notes.md (zod4 ok, no skill concept,
+  TS pin)

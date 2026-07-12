@@ -4,10 +4,12 @@
 > truth; open the linked code/notes before relying on a row. If your session
 > changes the verdicts or the code, update this file in the same commit.
 
-Last updated: **2026-07-11** (scaffolds + shared framework-neutral layer
-done: contracts/persistence/effects/domain/prompts/evals built and tested
-[live], 19 tests pass with no DB. No framework agent code or UI yet.
-Details: [`findings.md`](findings.md); annotated roadmap: [`plan.md`](plan.md).)
+Last updated: **2026-07-11** (all three direct baselines BUILT: same
+research-and-publish agent in Eve, Flue, and Mastra native idioms + adapter
+packages; typecheck/tests/build pass at root; persistence verified [live]
+against local Postgres. NOT yet run against a model — no API key — so no
+live agent behavior verdicts yet. UI + durability suite next.
+Details: [`findings.md`](findings.md); roadmap: [`plan.md`](plan.md).)
 
 ## What this is
 
@@ -62,8 +64,8 @@ untested · **[inf]** = inferred. Only [live] counts for the final memo.
 
 | Candidate | Status | Verdict so far | Evidence |
 |---|---|---|---|
-| Eve (direct) | official scaffold in place (`eve@0.22.5`, `npx eve init`); root `pnpm install` passes | — | scaffolded under Node 24; findings.md |
-| Flue (direct) | official scaffold in place (`@flue/runtime`+`@flue/cli` `1.0.0-beta.9`, `flue init --target node`); install passes | — | `flue init` writes only `flue.config.ts` — agent code is hand-authored; findings.md |
+| Eve (direct) | baseline BUILT (agent+tools+skill+subagent+eve-adapter); tests pass; served health [live]. Model loop unrun (no key) | needed sandbox pin (`justbash`) + build externalDependencies to run outside Vercel; Apache-2.0 [live] | [`log/2026-07-11-eve-baseline-notes.md`](log/2026-07-11-eve-baseline-notes.md) |
+| Flue (direct) | baseline BUILT (agent+tools+skill+subagent profile+flue-adapter); tests pass; `flue dev` health [live]. Model loop unrun (no key) | Valibot-vs-zod double validation tax; `flue build` output can't load raw-TS workspace pkgs (dev-mode only for now); Apache-2.0 [live] | [`log/2026-07-11-flue-baseline-notes.md`](log/2026-07-11-flue-baseline-notes.md) |
 | Mastra (direct) | baseline **built** — research-and-publish agent + native subagent + 4 thin tools + `@demo/mastra-adapter`; typecheck/tests/build pass, server to :3003 health [live] | [live] zod@4.4.3 works (peer warning only); native subagents + tool suspend/resume approval; NO SKILL.md concept (criterion 7 finding); Apache-2.0; ships scorers+observability. Model run + Drizzle path blocked (no keys/DB). See [`log/2026-07-11-mastra-baseline-notes.md`](log/2026-07-11-mastra-baseline-notes.md) | scaffolded Node 24; baseline notes |
 | Smithers orchestrating Eve/Flue (pattern A) | not started — blocked on direct baselines (test-plan) | — | — |
 | Eve/Flue launching bounded Smithers job (pattern B) | not started — same gate | — | — |

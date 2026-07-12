@@ -26,7 +26,7 @@ are repeatable; the flaky-but-idempotent publish (`DEMO_FAIL_PUBLISH_ATTEMPTS`,
 crash-after-effect) is the probe jabbed into each framework to observe
 retry/durability behavior. Idempotency keys are what make that safe to test.
 
-## Phase 2 — Direct baselines (the core comparison) [todo]
+## Phase 2 — Direct baselines (the core comparison) [built — unrun against a model; steps 6-7 todo]
 
 **4. Eve baseline** — research-and-publish agent in Eve's native idiom
 (filesystem `agent/`, durable session API, typed client).

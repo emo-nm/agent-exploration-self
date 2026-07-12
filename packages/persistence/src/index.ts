@@ -2,10 +2,20 @@
 // Framework-neutral: NO Eve/Flue/Mastra/Smithers imports.
 export * from "./schema.js";
 export * from "./repo.js";
-export { InMemoryEffectsRepo, InMemoryDemoRepo } from "./memory-repo.js";
+export {
+  InMemoryEffectsRepo,
+  InMemoryThreadsRepo,
+  InMemoryProposalsRepo,
+  InMemoryDemoRepo,
+} from "./memory-repo.js";
 export { createDatabase, createPool } from "./client.js";
 export type { Database } from "./client.js";
-export { DrizzleEffectsRepo, DrizzleDemoRepo } from "./drizzle-repo.js";
+export {
+  DrizzleEffectsRepo,
+  DrizzleThreadsRepo,
+  DrizzleProposalsRepo,
+  DrizzleDemoRepo,
+} from "./drizzle-repo.js";
 
 import type { DemoRepo } from "./repo.js";
 import { InMemoryDemoRepo } from "./memory-repo.js";
