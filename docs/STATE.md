@@ -8,7 +8,8 @@ Last updated: **2026-07-11** (all three direct baselines BUILT: same
 research-and-publish agent in Eve, Flue, and Mastra native idioms + adapter
 packages; typecheck/tests/build pass at root; persistence verified [live]
 against local Postgres. NOT yet run against a model — no API key — so no
-live agent behavior verdicts yet. UI + durability suite next.
+live agent behavior verdicts yet. Comparison UI built (/direct/*, approval
+round-trip verified on Postgres [live]); durability harness in progress.
 Details: [`findings.md`](findings.md); roadmap: [`plan.md`](plan.md).)
 
 ## What this is
@@ -29,9 +30,9 @@ decision memo is the product. Parent context:
 |---|---|---|
 | Original detailed spec (systems model, integration patterns, demo agent, test matrix) | [`docs/log/2026-07-11-eve-flue-smithers-codex-handoff.md`](log/2026-07-11-eve-flue-smithers-codex-handoff.md) | historical — content promoted into architecture/test-plan/deployment per phase; living docs win on conflict |
 | Annotated roadmap (phases, what each step buys, status) | [`plan.md`](plan.md) | current — derived from handoff section 23 |
-| Shared framework-neutral layer (contracts, persistence, effects, domain, prompts, evals) | `packages/*` + findings.md Phase 2 | [live] built + unit-tested (in-memory repo; Drizzle path untested until Neon `DATABASE_URL` exists) |
+| Shared framework-neutral layer (contracts, persistence, effects, domain, prompts, evals) | `packages/*` + findings.md Phase 2 | [live] built + unit-tested; Drizzle path verified against local Postgres 17 |
 | Ownership rule (never nest durability: Smithers-owned run XOR Eve/Flue-owned session) | handoff section 4 | [doc] standing constraint |
-| Shared demo agent (same toy in each framework, so comparison is fair) | handoff section 8 | [doc] specced, not built |
+| Shared demo agent (same toy in each framework, so comparison is fair) | [`architecture.md`](architecture.md) + apps/{eve,flue,mastra} | [live] built in all three; model loop unrun (no key) |
 | Architecture + demo-agent spec (incl. Mastra) | [`architecture.md`](architecture.md) | current — promoted from handoff 07-11 |
 | Test plan (durability suite, gate, security, adapters) | [`test-plan.md`](test-plan.md) | current — promoted from handoff 07-11 |
 | Deployment | [`deployment.md`](deployment.md) | placeholder — promote when phase 4 starts |

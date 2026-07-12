@@ -43,7 +43,7 @@ The experiment itself: same brain (shared prompts/skill), same tools, same DB
 approvals, tool typing, observability, skills, auth). Eve's auth/Connect
 story gets verified [live] here.
 
-**6. Shared comparison UI** — `apps/web`: `/direct/eve`, `/direct/flue`
+**6. Shared comparison UI** [built] — `apps/web`: `/direct/eve`, `/direct/flue`
 (+ mastra), later `/smithers/*`; transcript, live stream, tool/subagent
 activity, approval card, raw-event inspector.
 The approve/resume loop needs a human surface; side-by-side streams make
