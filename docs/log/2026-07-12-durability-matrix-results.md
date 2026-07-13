@@ -277,9 +277,15 @@ interrupted submission is resumed after restart. Not our polling (1s
 cadence), not the model, and SQLite recovery contributed ~0 here (it CAN
 contribute on cold cross-process starts — the 503 gotcha stands separately).
 Implication for the 60s bar: flue passes only when (30s lease + turn length)
-< 60s, i.e. real-length turns fail on the lease alone. OPEN: is the lease
-configurable? If flue exposes a shorter takeover timeout, scenario 1 could
-pass with margin; check docs before the memo. [live]
+< 60s, i.e. real-length turns fail on the lease alone. [live]
+
+Configurability: read the bundled @flue/runtime source — the candidate
+constants (`LONG_POLL_TIMEOUT_MS = 30_000`; recovery retry backoff base
+`TRANSIENT_MODEL_RETRY_BASE_DELAY_MS = 2_000`, doubling per attempt) are
+hard-coded module constants, not exposed config. The ~30s takeover wait is
+not tunable without patching the framework — itself a memo-grade finding
+for crash-recovery-latency-sensitive products. (Which constant governs is
+not fully pinned; the non-configurability is what matters.) [live]
 
 ## Where this leaves the gate
 
