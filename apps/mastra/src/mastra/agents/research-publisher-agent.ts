@@ -1,4 +1,4 @@
-// The research-and-publish demo agent, Mastra-native (handoff §8).
+// The research-and-publish demo agent, Mastra-native (handoff #8).
 //
 // - instructions: the SHARED brain from @demo/prompts (see ../skills).
 // - tools: thin wrappers over @demo/domain/@demo/effects (../tools).
@@ -17,22 +17,22 @@
 // and persist a snapshot until `resume()` is called. That is framework-owned
 // durability and is intentionally NOT used here so the approval flow stays
 // identical to Eve/Flue. The delta is recorded in the baseline notes.
-import { Agent } from '@mastra/core/agent';
-import { Memory } from '@mastra/memory';
-import { researchAndPublishInstructions } from '../skills/research-and-publish';
-import { makeResearchTools } from '../tools/research-tools';
-import { researcherAgent } from './researcher-agent';
-import { repo } from '../lib/repo';
-import { demoModel } from '../lib/model';
+import { Agent } from "@mastra/core/agent";
+import { Memory } from "@mastra/memory";
+import { researchAndPublishInstructions } from "../skills/research-and-publish";
+import { makeResearchTools } from "../tools/research-tools";
+import { researcherAgent } from "./researcher-agent";
+import { repo } from "../lib/repo";
+import { demoModel } from "../lib/model";
 
 export const researchPublisherAgent = new Agent({
-  id: 'research-publisher',
-  name: 'Research Publisher',
-  description:
-    'Research a topic against a fixture corpus, draft an artifact, and publish it after application-owned approval.',
-  instructions: researchAndPublishInstructions,
-  model: demoModel,
-  tools: makeResearchTools(repo),
-  agents: { researcher: researcherAgent },
-  memory: new Memory(),
+    id: "research-publisher",
+    name: "Research Publisher",
+    description:
+        "Research a topic against a fixture corpus, draft an artifact, and publish it after application-owned approval.",
+    instructions: researchAndPublishInstructions,
+    model: demoModel,
+    tools: makeResearchTools(repo),
+    agents: { researcher: researcherAgent },
+    memory: new Memory(),
 });

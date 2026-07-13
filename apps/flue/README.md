@@ -1,7 +1,7 @@
 # apps/flue
 
 Flue Node service (persistent host) — the research-and-publish baseline
-(handoff §8/§12) in Flue's native idiom. Runs on `http://localhost:3002`.
+(handoff #8/#12) in Flue's native idiom. Runs on `http://localhost:3002`.
 
 ## Layout (Flue discovery-based)
 

@@ -56,7 +56,7 @@ and survival across the flaky-publish window (`DEMO_FAIL_PUBLISH_ATTEMPTS=2`).
 - `eve start --port 3001` → serves; `GET /eve/v1/health` returns
   `{"ok":true,"status":"ready","workflowId":"workflow//eve//workflowEntry"}`
   and `GET /eve/v1/info` returns the agent snapshot. Health/info are the
-  adapter surface (§11); local port 3001 matches topology.
+  adapter surface (#11); local port 3001 matches topology.
 
 ## API differences vs the handoff
 
@@ -71,7 +71,7 @@ and survival across the flaky-publish window (`DEMO_FAIL_PUBLISH_ATTEMPTS=2`).
   `POST /eve/v1/session/:id`, `GET /eve/v1/session/:id/stream` (NDJSON), plus
   public `GET /eve/v1/health` and `GET /eve/v1/info`. `SessionState` is the
   `{ continuationToken, sessionId, streamIndex }` cursor — a resume handle, NOT
-  the transcript (matches handoff §11: persist events separately).
+  the transcript (matches handoff #11: persist events separately).
 - `eve/client` `Client` / `ClientSession.send()` / `.stream()` / `.state` match
   the docs; the adapter is built directly on them.
 - Subagent tool isolation is real and stricter than the handoff implies: a
@@ -129,7 +129,7 @@ Eve has **two independent** auth systems
   **"Can user A resume user B's thread?"** — the continuation token is the
   resume handle; route auth + a custom `AuthFn` returning `principalId` is what
   must scope it. Not verified live (no auth provider / keys); flagged for the
-  durability/security matrix (§19).
+  durability/security matrix (#19).
 - **Service-to-service**: `vercelOidc()` accepts same-project tokens with zero
   config (internal subagent/runtime callers); cross-project via
   `subjects: [vercelSubject(...)]`. The `eve/client` `Client` sends bearer /
@@ -152,7 +152,7 @@ Eve has **two independent** auth systems
   propose → await approval → publish → report needs a model credential
   (`AI_GATEWAY_API_KEY` or `ANTHROPIC_API_KEY` or `vercel link`). Build/health
   work; the actual turn does not. This is the gate for durability scenarios
-  §19.1–8 (kill mid-call, resume, duplicate approval/publish).
+  #19.1–8 (kill mid-call, resume, duplicate approval/publish).
 - **Drizzle/Postgres path** — `DrizzleThreadsRepo` / `DrizzleProposalsRepo` /
   `DrizzleEffectsRepo` typecheck and the factory selects them when
   `DATABASE_URL` is set, but no Neon DB exists yet, so only the in-memory path
@@ -164,6 +164,6 @@ Eve has **two independent** auth systems
   run produces real events.
 - **Eve-native durable approval** — baseline uses the application-owned
   approval flow (poll `get_publication_status`; publish revalidates status,
-  handoff §17). Eve's native HITL (`approval: always()` / `ask_question`,
+  handoff #17). Eve's native HITL (`approval: always()` / `ask_question`,
   `input.requested` pause) is a documented alternative to add as an optional
   second path after the portable baseline — not the baseline score.

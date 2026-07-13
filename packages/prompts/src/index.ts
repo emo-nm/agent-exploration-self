@@ -1,5 +1,5 @@
 // @demo/prompts — Shared behavioral instructions for the research-and-publish
-// agent (handoff §8). Framework-neutral: every framework gets the identical
+// agent (handoff #8). Framework-neutral: every framework gets the identical
 // "brain". NO Eve/Flue/Mastra/Smithers imports.
 
 /** Canonical agent instructions (the shared system prompt / behavior spec). */
@@ -26,7 +26,7 @@ Constraints:
 - Tool inputs are typed; provide arguments that match the tool schema.
 - Keep drafts concise and grounded strictly in the corpus evidence.`;
 
-/** Focused instructions for the researcher subagent (handoff §8 step 4). */
+/** Focused instructions for the researcher subagent (handoff #8 step 4). */
 export const RESEARCHER_INSTRUCTIONS = `You are a focused research subagent.
 
 You are delegated ONE narrow research subtask by the primary agent. Do only

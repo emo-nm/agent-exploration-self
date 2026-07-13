@@ -1,26 +1,26 @@
-// @demo/persistence — Drizzle schema + client for shared app state (handoff §10)
+// @demo/persistence — Drizzle schema + client for shared app state (handoff #10)
 // Framework-neutral: NO Eve/Flue/Mastra/Smithers imports.
 export * from "./schema.js";
 export * from "./repo.js";
 export {
-  InMemoryEffectsRepo,
-  InMemoryThreadsRepo,
-  InMemoryProposalsRepo,
-  InMemoryDemoRepo,
+    InMemoryEffectsRepo,
+    InMemoryThreadsRepo,
+    InMemoryProposalsRepo,
+    InMemoryDemoRepo,
 } from "./memory-repo.js";
 export { createDatabase, createPool } from "./client.js";
 export type { Database } from "./client.js";
 export {
-  DEMO_TABLES,
-  truncateDemoTables,
-  countPublicationEffects,
+    DEMO_TABLES,
+    truncateDemoTables,
+    countPublicationEffects,
 } from "./maintenance.js";
 export type { EffectCountRow } from "./maintenance.js";
 export {
-  DrizzleEffectsRepo,
-  DrizzleThreadsRepo,
-  DrizzleProposalsRepo,
-  DrizzleDemoRepo,
+    DrizzleEffectsRepo,
+    DrizzleThreadsRepo,
+    DrizzleProposalsRepo,
+    DrizzleDemoRepo,
 } from "./drizzle-repo.js";
 
 import type { DemoRepo } from "./repo.js";
@@ -36,8 +36,8 @@ import { DrizzleDemoRepo } from "./drizzle-repo.js";
  * in-memory path never touches Postgres.
  */
 export function createDemoRepo(): DemoRepo {
-  if (process.env.DATABASE_URL) {
-    return new DrizzleDemoRepo(createDatabase());
-  }
-  return new InMemoryDemoRepo();
+    if (process.env.DATABASE_URL) {
+        return new DrizzleDemoRepo(createDatabase());
+    }
+    return new InMemoryDemoRepo();
 }

@@ -1,6 +1,6 @@
 # Flue baseline — session notes (2026-07-11)
 
-Phase 2 step 5: the research-and-publish demo agent (handoff §8) implemented in
+Phase 2 step 5: the research-and-publish demo agent (handoff #8) implemented in
 `apps/flue` using Flue's **native idiom**, plus the web/server client in
 `packages/flue-adapter`. Versions: `@flue/runtime` + `@flue/cli` + `@flue/sdk`
 `1.0.0-beta.9`, Node 24, pnpm. No API keys present → model turns are not run
@@ -45,13 +45,13 @@ live; everything below `[blocked]` is recorded, not faked.
   directory into the artifact.
 - **Persistence** via `db.ts` default-exporting `sqlite('./data/flue.db')` from
   `@flue/runtime/node` — file-backed SQLite that survives restart (durable
-  local testing, handoff §12). Node 24 ships `node:sqlite`, so no native build.
-- **Application-owned approval (§17)** kept out of the framework: the agent
+  local testing, handoff #12). Node 24 ships `node:sqlite`, so no native build.
+- **Application-owned approval (#17)** kept out of the framework: the agent
   creates a `pending` proposal, then polls `get_publication_status` (the bounded
   poll tool) until the app writes a decision via the Hono route
   `POST /proposals/:id/decision`. Proposal state transitions are the pure
   `@demo/domain` functions; the store is `src/shared/proposals.ts`.
-- **Idempotent flaky publish (§18)** works end-to-end in tests: first configured
+- **Idempotent flaky publish (#18)** works end-to-end in tests: first configured
   attempt throws, retry commits (`created: true`), duplicate returns the same
   receipt (`created: false`). Exactly-once is enforced by the effect's
   idempotency key, not by proposal status.
@@ -177,7 +177,7 @@ actual logic is one call each into `@demo/domain`/`@demo/effects`.
   loop (plan → delegate → search → draft → propose → await approval → publish →
   report) is wired and typed but not executed against a model. Gate this on a
   key.
-- **Durability / failure-injection live tests (handoff §18–19, plan step 7).**
+- **Durability / failure-injection live tests (handoff #18–19, plan step 7).**
   The idempotent-publish/retry logic is unit-tested, but the kill-mid-run /
   restart-with-approval-pending scenarios need `node dist/server.mjs` to run,
   which is currently blocked by the raw-TS externalization issue above. Options:

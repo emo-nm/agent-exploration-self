@@ -81,7 +81,7 @@ criterion-7 finding.
 
 ## Approval: application-owned vs Mastra-native (criterion 2)
 
-Baseline uses the **application-owned** flow (handoff §17): agent creates a
+Baseline uses the **application-owned** flow (handoff #17): agent creates a
 `pending` proposal in the shared `publication_proposals` table, polls
 `get_publication_status`, and only calls `publish_artifact` once an out-of-band
 actor flips the row to `approved`; publish revalidates status and is idempotent
