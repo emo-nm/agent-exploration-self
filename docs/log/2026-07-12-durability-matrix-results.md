@@ -1,5 +1,13 @@
 # Durability matrix — corrected drivers, live rerun (2026-07-12/13)
 
+> **Read the numbers this way (07-13):** pass/fail at a fixed turn length is
+> misleading; the durable metric is **crash-recovery overhead** — time from
+> process death to a working conversation, independent of turn length.
+> Measured: mastra ~10-20s, flue ~33s (hard-coded 30s watchdog + re-drive),
+> eve locally unbounded (local-world artifact; prod TBD in deploy phase).
+> The product bar is: overhead + typical turn time <= 60s. Decision-grade
+> synthesis: [`../decision-memo.md`](../decision-memo.md).
+
 Follow-up to the first live durability matrix (results
 `.eval-results/durability-*-live-2026-07-13T00-*.json`). That run had two
 problems: (1) the Flue results were invalid — every scenario "passed" in 8.8s

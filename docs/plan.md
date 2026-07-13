@@ -50,14 +50,14 @@ The approve/resume loop needs a human surface; side-by-side streams make
 differences visible instead of anecdotal. Raw inspector preserves native
 events while normalized events enable comparison.
 
-**7. Durability + failure tests.** [run — mastra 8/8, eve 7/8 (real defect found), flue 6/8 (flake analysis in flight); gate not yet open]
+**7. Durability + failure tests.** [done — final metric is crash-recovery overhead: mastra ~10-20s, flue ~33s (hard-coded), eve locally unbounded (prod TBD); exactly-once held everywhere]
 Verdict-generator for the headline criterion: kill mid-model-call, kill
 between tool and next step, restart with approval pending, resume an old
 thread, duplicate approvals/publishes (8 scenarios, test-plan). Exactly-once
 publication is the pass/fail line. **GATE: no Smithers work until direct Eve
 and Flue pass** — otherwise integration bugs are unattributable.
 
-## Phase 3 — Smithers integration (both directions) [todo]
+## Phase 3 — Smithers integration (both directions) [deferred 07-13 — runs against the CHOSEN framework after the decision; see decision-memo.md. It orchestrates the winner, so it can't change who wins.]
 
 **8. Initialize the Smithers control plane** (`apps/smithers` HTTP/Gateway;
 `.smithers/` authoring pack already exists).
@@ -79,7 +79,7 @@ Pattern B: the realistic production topology (product agent delegates a
 bounded long job). Tests the section-4 ownership rule under fire: parent
 session stays live, child run does the work, nobody double-retries an effect.
 
-## Phase 4 — Ship and decide [todo]
+## Phase 4 — Ship and decide [memo WRITTEN 07-13 (decision-memo.md: Flue core, owned neutral layer, Mastra runner-up, Eve = platform bet); deploy validation is the one outstanding confirmation]
 
 **12. Deployment configs** — web+Eve on Vercel, Flue on a Node host,
 Smithers on a Bun container, shared Neon Postgres.

@@ -20,6 +20,12 @@ consecutive), **eve 6/8** (s1 replay-storm defect + s4 collateral: the
 storm degrades later resumes). Smithers gate: flue now passes; eve still
 fails kill-mid-turn — gate binds on both, still NOT open.
 Canonical results: log/2026-07-12-durability-matrix-results.md.
+**DECISION MEMO WRITTEN: [`decision-memo.md`](decision-memo.md)** —
+recommendation: Flue core behind our owned framework-neutral layer;
+Mastra runner-up; Eve only as an all-in-Vercel platform bet; auth dropped
+as an eval criterion (product middleware, not framework territory).
+One validation outstanding before final commitment: prod-shaped deploy
+rerun. Smithers phase deliberately deferred until after the choice.
 Details: [`findings.md`](findings.md); roadmap: [`plan.md`](plan.md);
 synthesis: [`log/2026-07-12-learnings-so-far.md`](log/2026-07-12-learnings-so-far.md).)
 
