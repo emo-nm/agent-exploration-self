@@ -38,9 +38,6 @@ importers:
       '@demo/prompts':
         specifier: workspace:*
         version: link:../../packages/prompts
-      '@demo/voice':
-        specifier: workspace:*
-        version: link:../../packages/voice
       '@openrouter/ai-sdk-provider':
         specifier: 3.0.0
         version: 3.0.0(ai@7.0.22(zod@4.4.3))(zod@4.4.3)

@@ -17,6 +17,12 @@ Fill in measured deploy details as phase 4 lands.
 Do not force Flue or Smithers into a Vercel runtime just to say everything is on
 Vercel. The web app may proxy all runtimes behind one UI.
 
+**Scope decision (James, 07-13): nothing gets hosted outside Vercel for this
+eval — no time.** So web + Eve deploy to Vercel (project `native-money/eve`,
+rootDirectory=apps/eve, framework auto-detected `eve`); Flue, Mastra, and
+Smithers stay local-only, and the memo carries "Flue hosted behavior
+untested" as an accepted risk rather than a to-do.
+
 ## Vercel (apps/web)
 
 This repo is a pnpm + Turborepo monorepo. Two supported ways to deploy `apps/web`:
