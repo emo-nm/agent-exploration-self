@@ -1,0 +1,44 @@
+diff --git a/dist/conversation-stream-store-Bitz7UoW.mjs b/dist/conversation-stream-store-Bitz7UoW.mjs
+index 94032552cc83d3596ae6e53bd46ec6c9c9749b01..4f256f8f2476b8fd182eb2a755d38706f07daa84 100644
+--- a/dist/conversation-stream-store-Bitz7UoW.mjs
++++ b/dist/conversation-stream-store-Bitz7UoW.mjs
+@@ -14,7 +14,7 @@ const DURABILITY_DEFAULT_MAX_ATTEMPTS = 10;
+ /** Default submission timeout in milliseconds (one hour). */
+ const DURABILITY_DEFAULT_TIMEOUT_MS = 36e5;
+ /** Default lease duration for submission ownership in milliseconds (30 seconds). */
+-const LEASE_DURATION_MS = 3e4;
++const LEASE_DURATION_MS = Number(process.env.FLUE_LEASE_DURATION_MS ?? 3e4);
+ //#endregion
+ //#region src/context.ts
+ /**
+diff --git a/dist/internal.mjs b/dist/internal.mjs
+index 1147b979db854e2c491a1ab802b4848a84e1dbd1..20712ac52124224159b105e26bb2ede72f94b476 100644
+--- a/dist/internal.mjs
++++ b/dist/internal.mjs
+@@ -764,7 +764,7 @@ function createSqlAgentExecutionStore(storage, className) {
+ //#region src/cloudflare/agent-coordinator.ts
+ const CLOUDFLARE_AGENT_INTERNAL_DISPATCH_PATH = "/__flue/internal/dispatch";
+ const FLUE_AGENT_SUBMISSION_WAKE_CALLBACK = "__flueWakeAgentSubmissions";
+-const FLUE_AGENT_SUBMISSION_WAKE_SECONDS = 30;
++const FLUE_AGENT_SUBMISSION_WAKE_SECONDS = Number(process.env.FLUE_SUBMISSION_WAKE_SECONDS ?? 30);
+ const FLUE_AGENT_SUBMISSION_ATTEMPT_STALE_MS = 900 * 1e3;
+ const FLUE_AGENT_SUBMISSION_ATTEMPT_FIBER = "flue:submission-attempt";
+ function createCloudflareAgentRuntime(options) {
+@@ -1511,7 +1511,7 @@ function createNodeAgentCoordinator(options) {
+ 				submissions.renewLeases(ownerId, ids).catch((error) => {
+ 					console.error("[flue:lease-heartbeat] Failed to renew leases:", error);
+ 				});
+-			}, 1e4);
++			}, Number(process.env.FLUE_LEASE_HEARTBEAT_MS ?? 1e4));
+ 			if (typeof heartbeatInterval === "object" && "unref" in heartbeatInterval) heartbeatInterval.unref();
+ 		}
+ 		if (!leaseScanInterval) {
+@@ -1520,7 +1520,7 @@ function createNodeAgentCoordinator(options) {
+ 		}
+ 	}
+ 	/** Interval (ms) between periodic expired-lease scans in the claim loop. */
+-	const LEASE_SCAN_INTERVAL_MS = 15e3;
++	const LEASE_SCAN_INTERVAL_MS = Number(process.env.FLUE_LEASE_SCAN_INTERVAL_MS ?? 15e3);
+ 	/** Timestamp of the last expired-lease scan. */
+ 	let lastLeaseScanAt = 0;
+ 	/**

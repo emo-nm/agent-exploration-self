@@ -95,6 +95,11 @@ export async function runDurability(opts: RunnerOptions): Promise<RunReport> {
         DATABASE_URL: process.env.DATABASE_URL,
         OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
         PORT: String(config.port),
+        // Recovery-tuning experiment passthrough (flue wake-constant patch;
+        // see log/2026-07-13-migration-and-selfhost.md item 6).
+        ...Object.fromEntries(
+          Object.entries(process.env).filter(([k]) => k.startsWith("FLUE_")),
+        ),
       },
       onStdout: sink("out"),
       onStderr: sink("err"),
