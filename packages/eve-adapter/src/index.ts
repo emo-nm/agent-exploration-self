@@ -86,6 +86,55 @@ export class EveAdapter {
   }
 
   /**
+   * Send one turn and yield normalized events as they stream, persisting the
+   * session cursor as soon as it is known (right after the POST, before the
+   * turn completes) so the thread stays resumable even if the caller stops
+   * reading mid-turn. The eve run keeps executing server-side (durable), so a
+   * caller can observe that model work has started and then abandon the stream
+   * — used by the durability harness's kill-during-model-work scenario so a
+   * SIGKILL lands mid-turn rather than after the turn has already finished.
+   */
+  async *streamMessage(
+    appThreadId: string,
+    message: string,
+  ): AsyncIterable<AgentEvent> {
+    const thread =
+      (await this.threads.getThread(appThreadId)) ??
+      (await this.createThread(appThreadId));
+    const saved =
+      (thread.continuationStateJson as SessionState | null) ?? undefined;
+    const session = saved ? this.client.session(saved) : this.client.session();
+
+    const response = await session.send(message);
+    // NOTE: session.state does NOT carry the sessionId until the stream is
+    // iterated (the cursor advances as events arrive); response.sessionId /
+    // response.continuationToken ARE known immediately after the POST. Persist
+    // a valid resumable cursor up front from the response so a mid-turn break
+    // still leaves the thread resumable / streamable.
+    const persist = async () => {
+      const base = (session.state ?? {}) as SessionState;
+      const cursor: SessionState = {
+        ...base,
+        sessionId: base.sessionId ?? response.sessionId,
+        continuationToken: base.continuationToken ?? response.continuationToken,
+      } as SessionState;
+      await this.threads.saveContinuation(appThreadId, {
+        externalSessionId: cursor.sessionId ?? null,
+        continuationStateJson: cursor,
+      });
+    };
+    await persist();
+    for await (const event of response) {
+      const normalized = normalizeEvent(event);
+      if (normalized) yield normalized;
+      // Keep the persisted cursor fresh so an early break saves the latest
+      // stream position (the eve run continues server-side regardless).
+      await persist();
+    }
+    await persist();
+  }
+
+  /**
    * Reattach to an existing eve session's durable stream from the persisted
    * cursor, yielding normalized events. Use for reconnect/replay in the UI.
    */

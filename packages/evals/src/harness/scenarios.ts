@@ -23,6 +23,34 @@ export interface ScenarioDef {
 
 const PROMPT = EVAL_CASES[0]!.prompt;
 
+// Per-phase budgets. Eve on the direct provider path has NO prompt caching, so
+// a cold research turn is ~85s and grows with context; size accordingly and
+// fail with a clear message rather than leaning on undici's opaque 300s default
+// (the earlier "fetch failed" after 385s/432s was that default firing).
+const SETTLE_TURN_MS = 240_000; // full research/resume turn to completion
+const MODEL_STARTED_MS = 120_000; // just until the first model event
+const RECONNECT_MS = 60_000; // reattach + read one event
+
+/** Race a promise against a timeout with a clear, phase-attributed message. */
+async function withTimeout<T>(
+  p: Promise<T>,
+  ms: number,
+  label: string,
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () => reject(new Error(`${label} exceeded ${ms}ms budget`)),
+      ms,
+    );
+  });
+  try {
+    return await Promise.race([p, timeout]);
+  } finally {
+    clearTimeout(timer!);
+  }
+}
+
 // --- reusable phases -------------------------------------------------------
 
 const reset: Phase = {
@@ -33,19 +61,33 @@ const reset: Phase = {
   },
 };
 
-const driveResearchTurn: Phase = {
-  name: "drive-research-turn",
-  needsModel: true,
-  run: async (ctx) => {
-    const threadId = ctx.bag.threadId ?? `thr_${ctx.backend}_${Date.now()}`;
-    ctx.bag.threadId = threadId;
-    await ctx.driver.sendMessage(threadId, PROMPT);
-    // Live mode: read the proposal the agent created.
-    const pending = await findLatestProposal(ctx);
-    if (pending) ctx.bag.proposalId = pending;
-    return `drove agent turn on thread ${threadId}`;
-  },
-};
+/**
+ * Drive a research turn to a checkpoint. "settled" observes the whole turn;
+ * "model-started" returns once model work has demonstrably begun, leaving the
+ * turn IN-FLIGHT (for kill-mid-work / mid-stream-reconnect scenarios). This is
+ * now symmetric across all three backends (see drivers.ts checkpoint notes).
+ */
+function driveResearchTurn(
+  until: "settled" | "model-started" = "settled",
+): Phase {
+  return {
+    name: "drive-research-turn",
+    needsModel: true,
+    run: async (ctx) => {
+      const threadId = ctx.bag.threadId ?? `thr_${ctx.backend}_${Date.now()}`;
+      ctx.bag.threadId = threadId;
+      const budget = until === "settled" ? SETTLE_TURN_MS : MODEL_STARTED_MS;
+      const events = await withTimeout(
+        ctx.driver.sendMessage(threadId, PROMPT, { until, timeoutMs: budget }),
+        budget,
+        `drive-research-turn (${until})`,
+      );
+      const pending = await findLatestProposal(ctx);
+      if (pending) ctx.bag.proposalId = pending;
+      return `drove agent turn (${until}) on thread ${threadId}: ${events.length} events`;
+    },
+  };
+}
 
 async function findLatestProposal(ctx: ScenarioContext): Promise<string | undefined> {
   // The in-memory / drizzle repos don't expose a list; scenarios that need a
@@ -156,10 +198,25 @@ export const SCENARIOS: ScenarioDef[] = [
     injection: "SIGKILL mid-turn (before any tool commits)",
     phases: [
       reset,
-      driveResearchTurn,
+      // in-flight turn, then a hard crash mid-work
+      driveResearchTurn("model-started"),
       { name: "kill-mid-turn", needsModel: true, run: async (ctx) => (await ctx.killService(), "killed") },
       restart,
-      { name: "resume-turn", needsModel: true, run: async (ctx) => (await ctx.driver.sendMessage(ctx.bag.threadId!, "continue"), "resumed") },
+      {
+        name: "resume-turn",
+        needsModel: true,
+        run: async (ctx) => {
+          const ev = await withTimeout(
+            ctx.driver.sendMessage(ctx.bag.threadId!, "continue", {
+              until: "settled",
+              timeoutMs: SETTLE_TURN_MS,
+            }),
+            SETTLE_TURN_MS,
+            "resume-turn",
+          );
+          return `resumed after crash: ${ev.length} events`;
+        },
+      },
       seedProposal("approved"),
       publish(),
       assertExactlyOnce,
@@ -204,9 +261,23 @@ export const SCENARIOS: ScenarioDef[] = [
     injection: "cold driver reattaches to a persisted thread",
     phases: [
       reset,
-      driveResearchTurn,
+      driveResearchTurn("settled"),
       restart,
-      { name: "resume-saved-thread", needsModel: true, run: async (ctx) => (await ctx.driver.sendMessage(ctx.bag.threadId!, "publish it"), "resumed saved thread") },
+      {
+        name: "resume-saved-thread",
+        needsModel: true,
+        run: async (ctx) => {
+          const ev = await withTimeout(
+            ctx.driver.sendMessage(ctx.bag.threadId!, "publish it", {
+              until: "settled",
+              timeoutMs: SETTLE_TURN_MS,
+            }),
+            SETTLE_TURN_MS,
+            "resume-saved-thread",
+          );
+          return `resumed saved thread: ${ev.length} events`;
+        },
+      },
       seedProposal("approved"),
       publish(),
       assertExactlyOnce,
@@ -219,8 +290,25 @@ export const SCENARIOS: ScenarioDef[] = [
     injection: "drop the stream mid-turn, reattach, no duplicate effect",
     phases: [
       reset,
-      driveResearchTurn,
-      { name: "reconnect-stream", needsModel: true, run: async (ctx) => { for await (const _ of ctx.driver.streamEvents(ctx.bag.threadId!)) break; return "reattached stream"; } },
+      // in-flight turn, so the reconnect is genuinely mid-stream
+      driveResearchTurn("model-started"),
+      {
+        name: "reconnect-stream",
+        needsModel: true,
+        run: async (ctx) =>
+          withTimeout(
+            (async () => {
+              let n = 0;
+              for await (const _ of ctx.driver.streamEvents(ctx.bag.threadId!)) {
+                n += 1;
+                break;
+              }
+              return `reattached stream (${n} event)`;
+            })(),
+            RECONNECT_MS,
+            "reconnect-stream",
+          ),
+      },
       seedProposal("approved"),
       publish(),
       assertExactlyOnce,
@@ -233,8 +321,22 @@ export const SCENARIOS: ScenarioDef[] = [
     injection: "same user message twice",
     phases: [
       reset,
-      driveResearchTurn,
-      { name: "resubmit-same-input", needsModel: true, run: async (ctx) => (await ctx.driver.sendMessage(ctx.bag.threadId!, PROMPT), "resubmitted identical input") },
+      driveResearchTurn("settled"),
+      {
+        name: "resubmit-same-input",
+        needsModel: true,
+        run: async (ctx) => {
+          const ev = await withTimeout(
+            ctx.driver.sendMessage(ctx.bag.threadId!, PROMPT, {
+              until: "settled",
+              timeoutMs: SETTLE_TURN_MS,
+            }),
+            SETTLE_TURN_MS,
+            "resubmit-same-input",
+          );
+          return `resubmitted identical input: ${ev.length} events`;
+        },
+      },
       seedProposal("approved"),
       publish(),
       assertExactlyOnce,

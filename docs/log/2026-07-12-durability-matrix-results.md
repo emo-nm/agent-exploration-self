@@ -1,0 +1,200 @@
+# Durability matrix — corrected drivers, live rerun (2026-07-12/13)
+
+Follow-up to the first live durability matrix (results
+`.eval-results/durability-*-live-2026-07-13T00-*.json`). That run had two
+problems: (1) the Flue results were invalid — every scenario "passed" in 8.8s
+total because the driver returned at submission-accept, before any model work;
+(2) Eve scenarios 1 and 5 failed with an opaque "fetch failed" after ~385s/432s.
+Both are diagnosed below; drivers were fixed and the FULL matrix rerun for all
+three backends. Between the diagnostic reruns and the final run, the
+prompt-caching wrapper landed (commit 028e53e: `@demo/model` `withPromptCaching`
+in apps/eve and apps/mastra), so the final numbers are on the cached wiring for
+all three.
+
+All runs: live model (`anthropic/claude-sonnet-5` via OpenRouter), local
+Postgres 17 (`DATABASE_URL`), demo tables TRUNCATEd between scenarios (harness
+`reset` phase), backend local stores (eve `.workflow-data`, flue `data/`,
+mastra `mastra.db*`) wiped before each backend's suite.
+
+## Final matrix (live, cached wiring)
+
+| # | scenario | eve | flue | mastra |
+|---|---|---|---|---|
+| 1 | kill-during-model-work | FAIL (resume >240s) | FAIL (resume >240s) | PASS 17.5s |
+| 2 | kill-after-tool-success | PASS 3.3s | PASS 2.6s | PASS 6.6s |
+| 3 | restart-approval-pending | PASS 2.0s | PASS 1.5s | PASS 6.6s |
+| 4 | resume-saved-thread | PASS 56.8s | FAIL (settle >240s) | PASS 51.8s |
+| 5 | stream-disconnect-reconnect | PASS 3.2s | PASS 3.1s | PASS 8.0s |
+| 6 | duplicate-user-input | PASS 125.8s | PASS 316.7s | PASS 53.9s |
+| 7 | duplicate-approval | PASS | PASS | PASS |
+| 8 | duplicate-publication-request | PASS (1 effect row) | PASS (1 effect row) | PASS (1 effect row) |
+| | **total** | **7/8, 440s** | **6/8, 813s** | **8/8, 152s** |
+
+Exactly-once held in EVERY scenario on every backend (never a duplicate
+publication effect — the failures are availability/resume failures, not
+correctness failures).
+
+Interpretation:
+- **mastra 8/8** clean, second consecutive credible full pass (first run
+  8/8 pre-caching, this run 8/8 cached and faster).
+- **eve 7/8**: the one failure is exactly the diagnosed poison-message
+  replay-storm defect (section b below): resume after kill-mid-model-turn
+  exceeded 240s while interrupted-run queue messages replayed. Scenario 5,
+  which failed in the first matrix, passes after the adapter cursor fix —
+  that half was our bug, and the isolated repro proves clean crash-resume
+  works (12.9s) when the queue isn't storming.
+- **flue 6/8**: both failures are >240s timeouts, not wrong behavior, and
+  scenario 6 PASSED at 316s — flue's durable self-polling submissions can
+  legitimately exceed the 240s settle budget, and the stale-SQLite boot
+  gotcha (below) can burn most of a resume budget after a hard kill.
+  Flake-vs-defect not yet resolved: needs repeat runs and/or a budget
+  calibrated to flue's polling cadence. Recorded honestly as OPEN.
+
+## Problem 1 — Flue driver: submit-then-observe checkpoints
+
+Root cause: Flue's `client.agents.send()` ADMITS a durable submission and
+returns at accept; the model loop runs server-side afterward. The old driver
+returned at admission, so:
+
+- `kill-during-model-work` killed the service before any model work started
+  (drive phase: 282ms in the invalid run) — it tested a kill during nothing.
+- Every "model" scenario asserted against an empty conversation.
+
+Fix (`packages/evals/src/harness/drivers.ts`): the driver now takes an explicit
+per-turn checkpoint and OBSERVES the submission until that checkpoint is
+reached, by polling `client.agents.history()` (a durable materialized read):
+
+| Checkpoint | Meaning for Flue | Used by |
+|---|---|---|
+| `settled` | poll until `snapshot.settlements[]` contains this `submissionId` (terminal outcome recorded by Flue) | scenarios 4, 6 drive turns; all resume turns |
+| `model-started` | poll until the conversation shows a real model event (assistant message / tool-call / tool-result / subagent), then return WITH THE SUBMISSION STILL RUNNING server-side | scenario 1 (so the SIGKILL lands mid-model-work), scenario 5 (so the reconnect is genuinely mid-stream) |
+
+Each checkpoint has an explicit budget and a named failure
+(`flue submission <id> did not reach '<checkpoint>' within <ms>`), never a bare
+"fetch failed". `streamEvents` (reconnect) re-reads the durable snapshot.
+
+The same checkpoint contract was applied to eve and mastra so scenario 1/5 are
+symmetric across backends: eve streams the turn and breaks after the first
+model event (the eve run keeps executing server-side — verified: the killed
+run's session resumed with full context); mastra breaks its SSE reader the same
+way (caveat: mastra's turn is driven BY the client request, so an abandoned
+reader may cancel the in-flight turn server-side — the kill still lands
+mid-work from the harness's perspective, but this is a weaker durability story
+than eve/flue, where the turn provably continues without a client).
+
+What the drive phases actually did in the corrected Flue run (evidence it now
+tests what the titles say): scenario 1 drive reached model-started in ~4.1s,
+kill, restart, resume produced 43 events in ~128s; scenario 4's settled drive
+took ~196s / 42 events; scenario 6's ~148s / 38 events. Versus 8-282ms sham
+drives in the invalid run.
+
+## Problem 2 — Eve scenarios 1 and 5 root cause
+
+Verdict: **part harness artifact, part REAL eve defect.** The opaque
+"fetch failed" errors and one of the two failures (scenario 5) were
+harness/driver bugs, now fixed. But underneath sits a genuine eve durability
+defect: a SIGKILL mid-model-turn leaves poisoned queue messages in eve's local
+Workflow world that replay forever on every restart, and resume of the
+interrupted thread is unreliable while that storm runs — observed
+succeeding once (12.2s) and failing twice (>240s, >300s) across three
+full-suite runs. Three distinct things untangled:
+
+### (a) The original "fetch failed" after ~385s/432s — harness artifact
+
+Both failing phases died at almost exactly 300.9s inside the phase (undici's
+default headers/body timeout of 300s on a fetch with no response activity), on
+top of ~80s of prior turn time. Isolated reproduction
+(`packages/evals/src/repro-eve.ts`, log
+`.eval-results/eve-repro-server.log`): boot eve -> full research turn (85s) ->
+SIGKILL process group -> restart (3.2s to healthy) -> resume the same thread
+from the persisted `SessionState` cursor -> **RESUME OK in 12.9s, 4 events,
+same session id `wrun_01KXCEJEHT3MF172PMGC80094J`**. Eve's crash-resume of a
+thread works. The fix is per-phase budgets with named errors (see driver
+changes) instead of riding into undici's opaque default.
+
+### (b) The REAL eve defect — interrupted turns become a poison-message
+### replay storm in the local Workflow world
+
+Eve's local world persists workflow queue state to disk
+(`apps/eve/.workflow-data`; grew to 17MB / 33 runs across the earlier session).
+Runs interrupted by SIGKILL are replayed on every restart and REJECTED forever:
+
+```
+[world-local] Queue message failed (attempt 78, HTTP 400) {
+  queueName: '__wkf_workflow_workflow//eve//turnWorkflow',
+  runId: 'wrun_01KXCFAZDQVB9D6NW7RB0BF66D',
+  handlerError: '{"error":"Unhandled queue"}'
+}
+```
+
+In ONE full-suite run starting from a WIPED `.workflow-data`
+(`.eval-results/eve-server-1783903876992.log`), 5 interrupted runIds were
+retried 78-103 times each (460 failure log lines, still climbing at process
+kill) across the suite's 4 restarts. There is no visible backoff ceiling or
+dead-letter: the backlog re-arms on every restart and competes with live work.
+Effect measured in that run: scenario 4's `resume-saved-thread` (a single
+follow-up turn that takes ~8-12s on a quiet server) did not complete within a
+240s budget while the replay storm was running. Scenarios that resumed earlier,
+with fewer poisoned runs pending (scenario 1 resume: 12.2s), passed. This is a
+first-hand [live] durability finding against eve's local world: **a hard crash
+mid-turn leaves permanently-retrying poisoned queue messages that degrade the
+restarted server**, and it compounds with each additional crash. (The
+2026-07-12 first-live-runs note saw a single harmless-looking "Unhandled queue"
+line; under the durability suite's repeated kills it is not harmless.)
+
+### (c) Scenario 5's second failure mode — adapter cursor bug (fixed)
+
+After the checkpoint redesign, scenario 5 failed differently: "thread has no
+eve session to stream". Cause: eve's `session.state` does NOT carry the
+`sessionId` until the response stream is iterated; only
+`response.sessionId`/`response.continuationToken` are known right after the
+POST. The new `streamMessage` persisted the pre-stream state, saving a cursor
+without a session id. Fixed in `packages/eve-adapter/src/index.ts`: the
+persisted cursor is composed from `session.state` overlaid with the response's
+`sessionId`/`continuationToken`, and re-persisted after each streamed event so
+an early break always leaves a resumable, streamable cursor.
+
+## Driver / harness changes (all in this working tree, uncommitted)
+
+- `packages/evals/src/harness/drivers.ts` — checkpoint contract
+  (`until: "settled" | "model-started"`, per-call `timeoutMs`); Flue driver
+  rewritten to observe via `history()` polling with settlement detection; eve
+  driver streams + early-breaks for `model-started`; mastra driver early-breaks
+  its SSE reader (caveat noted above).
+- `packages/evals/src/harness/scenarios.ts` — scenario 1 and 5 drive to
+  `model-started` (kill/reconnect genuinely mid-work); 4 and 6 drive to
+  `settled`; every model phase has an explicit budget (`SETTLE_TURN_MS` 240s,
+  `MODEL_STARTED_MS` 120s, `RECONNECT_MS` 60s) and a named timeout error.
+- `packages/evals/src/harness/runner.ts` — backend server stdout/stderr now
+  captured to `.eval-results/<backend>-server-<ts>.log` (the original failures
+  had zero server-side evidence).
+- `packages/eve-adapter/src/index.ts` — new `streamMessage()` (streaming send
+  with early-persisted, event-fresh session cursor); cursor composition fix.
+- `packages/evals/src/repro-eve.ts` — throwaway isolated repro for eve
+  scenario 1 (kept for evidence).
+- No changes to app code beyond what was already merged separately; sandbox
+  semantics untouched.
+
+Typecheck green (`@demo/evals`, `@demo/eve-adapter`, `@demo/flue-adapter`);
+all 15 harness unit tests pass.
+
+## Operational gotchas found while running
+
+- **Flue stale-SQLite boot failure:** after a SIGKILL, `apps/flue/data/flue.db`
+  was left with live `-wal`/`-shm`; the next `flue dev` served persistent 503
+  `runtime_unavailable` from `/health` for >60s (never recovered within the
+  budget). A fresh `data/` boots in ~3s. Kill-then-cold-start across harness
+  invocations needs either flue's own recovery time or a wiped data dir; WITHIN
+  a suite (same harness process respawning) restarts were clean.
+- **Mastra local stores** (`mastra.db*`, `mastra.duckdb*`) accumulate; wiped
+  between backend suites for comparability.
+
+## Where this leaves the gate
+
+Test-plan gate ("no Smithers work until direct eve and flue pass"): NOT yet
+open as of this run. eve has one real framework defect on kill-mid-turn
+(replay storm); flue has two unresolved timeout failures pending flake
+analysis. mastra would pass a gate but the gate binds on eve+flue.
+Next: repeat the failing scenarios to separate flake from defect, and
+consider whether a 240s uniform budget is fair to flue's polling design
+(changing it for one backend must be recorded, not silent).

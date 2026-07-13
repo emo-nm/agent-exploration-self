@@ -17,6 +17,7 @@ import {
   type EffectCountRow,
 } from "@demo/persistence";
 import { resolve } from "node:path";
+import { appendFileSync, mkdirSync } from "node:fs";
 import { BACKEND_CONFIGS, REPO_ROOT, type BackendName } from "./backends.js";
 import { spawnService, waitForHealth, killService, type RunningService } from "./terminator.js";
 import { createDriver } from "./drivers.js";
@@ -66,17 +67,36 @@ export async function runDurability(opts: RunnerOptions): Promise<RunReport> {
   let service: RunningService | undefined;
   let serviceHealthy = false;
 
+  // Capture the backend server's stdout/stderr to a log for post-hoc diagnosis
+  // (the earlier opaque "fetch failed" had no server-side evidence).
+  const logDir = resolve(REPO_ROOT, ".eval-results");
+  mkdirSync(logDir, { recursive: true });
+  const serverLog = resolve(logDir, `${opts.backend}-server-${startedAt}.log`);
+  const sink = (tag: string) => (chunk: string) => {
+    try {
+      appendFileSync(serverLog, `[${tag}] ${chunk}`);
+    } catch {
+      /* best effort */
+    }
+  };
+
   const startService = async () => {
     if (opts.noService) {
       serviceHealthy = true;
       return;
     }
+    appendFileSync(
+      serverLog,
+      `\n===== SPAWN ${config.name} ${new Date().toISOString()} =====\n`,
+    );
     service = spawnService(config, {
       env: {
         DATABASE_URL: process.env.DATABASE_URL,
         OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
         PORT: String(config.port),
       },
+      onStdout: sink("out"),
+      onStderr: sink("err"),
     });
     const health = await waitForHealth(config, {
       timeoutMs: opts.healthTimeoutMs ?? 60_000,
