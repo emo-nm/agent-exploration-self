@@ -21,12 +21,13 @@ storm degrades later resumes). Smithers gate ruling superseded 07-13: user refra
 failures as non-disqualifying, so Smithers phase ran (after the memo, by
 design) — patterns A+B live, 3-way compare incl. Eve, verdicts persisted.
 Canonical results: log/2026-07-12-durability-matrix-results.md.
-**DECISION MEMO WRITTEN: [`decision-memo.md`](decision-memo.md)** —
-recommendation: Flue core behind our owned framework-neutral layer;
-Mastra runner-up; Eve only as an all-in-Vercel platform bet; auth dropped
-as an eval criterion (product middleware, not framework territory).
-Memo reframed 07-13 (velocity x correctness). One validation outstanding
-before final commitment: Eve hosted on Vercel (needs `vercel login`).
+**DECISION MEMO FINAL: [`decision-memo.md`](decision-memo.md)** —
+Eve+Vercel behind our owned framework-neutral core (flipped from the
+pre-deploy Flue lean by the hosted results above + the no-external-hosting
+constraint). Mastra = velocity runner-up / exit candidate; Flue =
+correctness pick for a team that operates hosts. Auth: product middleware,
+not framework territory (eve's service-token AuthFn measured at ~20 lines).
+Next: memo to sprint board/Notion (INT-27).
 Details: [`findings.md`](findings.md); roadmap: [`plan.md`](plan.md);
 synthesis: [`log/2026-07-12-learnings-so-far.md`](log/2026-07-12-learnings-so-far.md).)
 
@@ -53,12 +54,12 @@ decision memo is the product. Parent context:
 | Shared demo agent (same toy in each framework, so comparison is fair) | [`architecture.md`](architecture.md) + apps/{eve,flue,mastra} | [live] built in all three; model loop unrun (no key) |
 | Architecture + demo-agent spec (incl. Mastra) | [`architecture.md`](architecture.md) | current — promoted from handoff 07-11 |
 | Test plan (durability suite, gate, security, adapters) | [`test-plan.md`](test-plan.md) | current — promoted from handoff 07-11 |
-| Deployment | [`deployment.md`](deployment.md) | local-dev current [live]; Eve->Vercel runbook written + build verified 07-13; execution blocked on `vercel login` |
+| Deployment | [`deployment.md`](deployment.md) | Eve DEPLOYED to Vercel prod [live] 07-13 (native-money/eve + Neon); full hosted loop + redeploy-mid-turn validated; flue/mastra/smithers local-only by scope decision |
 | Sandbox/isolation comparison (Eve microVM default vs Flue/Mastra BYO) | [`log/2026-07-12-sandbox-research.md`](log/2026-07-12-sandbox-research.md) | [doc] researched 07-12 — only Eve isolates by default in prod; justbash pin removed 07-13 |
 | Smithers integration (patterns A+B live, 3-way compare, observability answer) | [`log/2026-07-13-smithers-patterns-live.md`](log/2026-07-13-smithers-patterns-live.md) | [live] 07-13 — use LOCAL .smithers CLI, global has React clash |
 | Voice loop 3x (@demo/voice seam; mastra native vs eve/flue BYO) | [`log/2026-07-13-voice-wiring.md`](log/2026-07-13-voice-wiring.md) | [live] 07-13 — criterion 6 closed |
 | Normalized usage/cost event (all 3 adapters + UI + evals) | [`log/2026-07-13-usage-event.md`](log/2026-07-13-usage-event.md) | [live] 07-13 — mastra exposes no cost on stream (finding) |
-| DECISION MEMO (recommendation + reframed velocity x correctness scoring) | [`decision-memo.md`](decision-memo.md) | current — one outstanding validation: Eve hosted on Vercel (needs vercel login) |
+| DECISION MEMO (FINAL: Eve+Vercel behind owned neutral core; hosted deciding-match results) | [`decision-memo.md`](decision-memo.md) | FINAL 07-13 — next: copy to sprint board/Notion |
 | Findings per framework | [`findings.md`](findings.md) (from `findings-template.md`) | phases 1-3 recorded per candidate |
 | Learnings synthesis (through first live runs + first matrix) | [`log/2026-07-12-learnings-so-far.md`](log/2026-07-12-learnings-so-far.md) | snapshot 07-12 — headline: all three complete the loop [live]; Eve escape-hatch/lock-in finding; Flue driver invalidated its first matrix; Mastra 8/8 credible |
 
