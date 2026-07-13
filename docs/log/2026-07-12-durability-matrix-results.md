@@ -279,13 +279,22 @@ contribute on cold cross-process starts — the 503 gotcha stands separately).
 Implication for the 60s bar: flue passes only when (30s lease + turn length)
 < 60s, i.e. real-length turns fail on the lease alone. [live]
 
-Configurability: read the bundled @flue/runtime source — the candidate
-constants (`LONG_POLL_TIMEOUT_MS = 30_000`; recovery retry backoff base
-`TRANSIENT_MODEL_RETRY_BASE_DELAY_MS = 2_000`, doubling per attempt) are
-hard-coded module constants, not exposed config. The ~30s takeover wait is
-not tunable without patching the framework — itself a memo-grade finding
-for crash-recovery-latency-sensitive products. (Which constant governs is
-not fully pinned; the non-configurability is what matters.) [live]
+Mechanism pinned in @flue/runtime source (dist/internal.mjs, agent
+coordinator): while a submission runs, flue arms a durable watchdog alarm
+`FLUE_AGENT_SUBMISSION_WAKE_SECONDS = 30` (internal.mjs:767; used in
+`armSubmissionWake()`, :948, persisted via the agent `schedule()` API so it
+survives the process). SIGKILL leaves submission A status='running' with a
+live attempt marker (staleness cutoff 15 min, internal.mjs:768) — the
+restarted server does NOT proactively resume it; it waits for the persisted
+30s wake to fire, which runs `reconcileSubmissions()` →
+`reconcileInterruptedSubmission(A)`. Meanwhile our "continue" submission B
+is admitted instantly but unclaimable: `claimSubmission()`'s SQL guard
+(sql-run-store, `NOT EXISTS earlier ... status IN ('queued','running',
+'terminalizing') AND earlier.sequence < current.sequence`) enforces strict
+per-session ordering, so B waits for A. Timeline: wake fires ~30s → A
+re-driven and settled (~1s) → B claimable, runs, settles (~3s). The 30s is
+a module constant with no config surface (callers may pass `delaySeconds`,
+but nothing user-facing does) — not tunable without patching. [live]
 
 ## Classifying findings: architectural vs config/environment (user call, 07-13)
 
