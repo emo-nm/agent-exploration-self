@@ -64,6 +64,11 @@ export class InMemoryEffectsRepo implements EffectsRepo {
   size(): number {
     return this.rows.size;
   }
+
+  /** Test/harness helper: snapshot of all effect rows. */
+  listEffects(): PublicationEffectRow[] {
+    return [...this.rows.values()].map((r) => ({ ...r }));
+  }
 }
 
 
@@ -169,6 +174,10 @@ export class InMemoryDemoRepo implements DemoRepo {
   }
   saveResult(id: string, resultJson: unknown) {
     return this.effects.saveResult(id, resultJson);
+  }
+  /** Harness helper: snapshot of all effect rows (for exactly-once checks). */
+  listEffects(): PublicationEffectRow[] {
+    return this.effects.listEffects();
   }
 
   createProposal(input: CreateProposalInput) {

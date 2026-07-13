@@ -31,3 +31,6 @@ smithers.db-wal
 
 # TS incremental build info
 *.tsbuildinfo
+
+# durability harness results (ephemeral run artifacts)
+.eval-results/

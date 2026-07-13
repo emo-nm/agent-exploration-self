@@ -18,6 +18,13 @@ export interface PublishArtifactEnv {
   failAttempts?: number;
   /** If true, crash the process right after the effect commits. */
   crashAfterEffect?: boolean;
+  /**
+   * Sleep this many ms AFTER the attempt row is reserved but BEFORE the effect
+   * commits (DEMO_PAUSE_BEFORE_COMMIT_MS). This widens the window in which the
+   * process is "doing tool work" so the durability harness can SIGKILL at a
+   * deterministic checkpoint (mid-publish) instead of racing the model.
+   */
+  pauseBeforeCommitMs?: number;
 }
 
 export interface PublishArtifactDeps {
@@ -48,9 +55,15 @@ function readEnv(env?: PublishArtifactEnv): Required<PublishArtifactEnv> {
     Number.parseInt(process.env.DEMO_FAIL_PUBLISH_ATTEMPTS ?? "0", 10);
   const crashAfterEffect =
     env?.crashAfterEffect ?? process.env.DEMO_CRASH_AFTER_EFFECT === "true";
+  const pauseBeforeCommitMs =
+    env?.pauseBeforeCommitMs ??
+    Number.parseInt(process.env.DEMO_PAUSE_BEFORE_COMMIT_MS ?? "0", 10);
   return {
     failAttempts: Number.isFinite(failAttempts) ? failAttempts : 0,
     crashAfterEffect,
+    pauseBeforeCommitMs: Number.isFinite(pauseBeforeCommitMs)
+      ? pauseBeforeCommitMs
+      : 0,
   };
 }
 
@@ -94,6 +107,15 @@ export async function publishArtifact(
     throw new Error(
       `publish failed (attempt ${attempt} of first ${env.failAttempts} configured to fail)`,
     );
+  }
+
+  // Deterministic kill checkpoint: the attempt row is reserved (attempt_count
+  // bumped) but the effect has NOT committed yet. A harness that SIGKILLs the
+  // process during this window is testing "terminate mid-tool-work": on restart
+  // the row exists with resultJson=null and a retry must still publish exactly
+  // once (same idempotency key → same receipt).
+  if (env.pauseBeforeCommitMs > 0) {
+    await new Promise((resolve) => setTimeout(resolve, env.pauseBeforeCommitMs));
   }
 
   // Commit the effect.

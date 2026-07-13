@@ -9,12 +9,23 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "durability": "tsx src/cli.ts"
   },
   "dependencies": {
-    "@demo/contracts": "workspace:*"
+    "@demo/contracts": "workspace:*",
+    "@demo/domain": "workspace:*",
+    "@demo/effects": "workspace:*",
+    "@demo/eve-adapter": "workspace:*",
+    "@demo/flue-adapter": "workspace:*",
+    "@demo/mastra-adapter": "workspace:*",
+    "@demo/persistence": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "^5.6.0"
+    "@types/node": "24.x",
+    "tsx": "*",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
   }
 }

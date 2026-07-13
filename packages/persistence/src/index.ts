@@ -11,6 +11,12 @@ export {
 export { createDatabase, createPool } from "./client.js";
 export type { Database } from "./client.js";
 export {
+  DEMO_TABLES,
+  truncateDemoTables,
+  countPublicationEffects,
+} from "./maintenance.js";
+export type { EffectCountRow } from "./maintenance.js";
+export {
   DrizzleEffectsRepo,
   DrizzleThreadsRepo,
   DrizzleProposalsRepo,
