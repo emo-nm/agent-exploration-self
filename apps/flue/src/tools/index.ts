@@ -4,6 +4,7 @@ import { searchFixtureCorpusTool } from "./search-fixture-corpus.ts";
 import { createPublicationProposalTool } from "./create-publication-proposal.ts";
 import { getPublicationStatusTool } from "./get-publication-status.ts";
 import { publishArtifactTool } from "./publish-artifact.ts";
+import { startSmithersWorkflowTool } from "./start-smithers-workflow.ts";
 
 export type { ToolFactoryContext } from "./context.ts";
 
@@ -16,5 +17,6 @@ export function buildResearchTools(
     createPublicationProposalTool(ctx),
     getPublicationStatusTool(ctx),
     publishArtifactTool(ctx),
+    startSmithersWorkflowTool(ctx),
   ];
 }
