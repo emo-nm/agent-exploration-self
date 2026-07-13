@@ -21,6 +21,7 @@
     "@demo/contracts": "workspace:*",
     "@demo/domain": "workspace:*",
     "@demo/effects": "workspace:*",
+    "@demo/model": "workspace:*",
     "@demo/persistence": "workspace:*",
     "@demo/prompts": "workspace:*",
     "@mastra/core": "^1.50.1",

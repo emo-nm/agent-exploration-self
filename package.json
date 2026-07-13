@@ -13,7 +13,8 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "eval:durability": "pnpm --filter @demo/evals durability --"
+    "eval:durability": "pnpm --filter @demo/evals durability --",
+    "check:caching": "pnpm --filter @demo/model check:caching"
   },
   "devDependencies": {
     "tsx": "^4.23.0",

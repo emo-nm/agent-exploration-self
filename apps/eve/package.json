@@ -18,6 +18,7 @@
     "@demo/contracts": "workspace:*",
     "@demo/domain": "workspace:*",
     "@demo/effects": "workspace:*",
+    "@demo/model": "workspace:*",
     "@demo/persistence": "workspace:*",
     "@demo/prompts": "workspace:*",
     "@openrouter/ai-sdk-provider": "3.0.0",
