@@ -26,13 +26,9 @@ describe("normalizeConversation", () => {
         id: "m2",
         role: "assistant" as const,
         parts: [
-          {
-            type: "dynamic-tool" as const,
-            toolName: "search_fixture_corpus",
-            toolCallId: "call-1",
-            state: "input-available" as const,
-            input: { query: "x" },
-          },
+          // Materialized history only ever carries the TERMINAL state; the
+          // adapter synthesizes the tool-call from the input on the settled
+          // part (see index.ts).
           {
             type: "dynamic-tool" as const,
             toolName: "search_fixture_corpus",
@@ -85,8 +81,13 @@ describe("normalizeConversation", () => {
         metadata: { timestamp: "2026-07-11T00:00:00.000Z" },
       },
     ]);
-    expect(events).toHaveLength(1);
-    expect(events[0]!.type).toBe("error");
-    AgentEventSchema.parse(events[0]);
+    // A terminal error part yields the (synthesized) tool-call plus a
+    // tool-attributed error event.
+    expect(events.map((e) => e.type)).toEqual(["tool-call", "error"]);
+    for (const e of events) AgentEventSchema.parse(e);
+    const errEvent = events[1]!;
+    if (errEvent.type === "error") {
+      expect(errEvent.message).toContain("publish_artifact");
+    }
   });
 });

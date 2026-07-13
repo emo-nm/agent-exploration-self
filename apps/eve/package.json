@@ -20,6 +20,7 @@
     "@demo/effects": "workspace:*",
     "@demo/persistence": "workspace:*",
     "@demo/prompts": "workspace:*",
+    "@openrouter/ai-sdk-provider": "3.0.0",
     "@vercel/connect": "0.2.2",
     "ai": "^7.0.0",
     "drizzle-orm": "^0.36.0",

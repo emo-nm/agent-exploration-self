@@ -32,9 +32,11 @@ export default defineAgent(({ id }) => {
   const stores = getStores();
   const ctx = { threadId: id, stores };
   return {
-    // Same shared model across frameworks. No key is present in this spike, so
-    // live model turns are [blocked]; wiring/typing/tools are exercised instead.
-    model: "anthropic/claude-sonnet-4-6",
+    // Same shared model across frameworks, reached through OpenRouter (the
+    // `openrouter` provider is registered/overridden in app.ts). DEMO_MODEL_ID
+    // is the OpenRouter model id (e.g. anthropic/claude-sonnet-5); the Flue
+    // model specifier prefixes it with the provider id.
+    model: `openrouter/${process.env.DEMO_MODEL_ID ?? "anthropic/claude-sonnet-5"}`,
     instructions: AGENT_INSTRUCTIONS,
     skills: [researchAndPublishSkill],
     tools: buildResearchTools(ctx),

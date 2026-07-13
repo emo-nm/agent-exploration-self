@@ -60,8 +60,12 @@ export function normalizeMastraChunk(chunk: MastraChunk): AgentEvent | null {
       };
     }
     case 'tool-result':
-    case 'tool-output':
     case 'tool-execution-end': {
+      // LIVE-VERIFIED: the terminal per-call chunk is `tool-result` (from AGENT),
+      // payload {args, toolCallId, toolName, result}. We deliberately DO NOT map
+      // Mastra's intermediate `tool-output` chunks (from USER, ~1 per output
+      // fragment, each re-wrapping the full result): they fire ~100x per run and
+      // would flood the normalized stream with duplicate tool-result events.
       return {
         type: 'tool-result',
         toolName: String((p.toolName as string) ?? (p.toolId as string) ?? 'unknown'),
@@ -87,12 +91,28 @@ export function normalizeMastraChunk(chunk: MastraChunk): AgentEvent | null {
     }
     case 'error':
     case 'tool-error': {
-      return {
-        type: 'error',
-        message: String((p.error as string) ?? (p.message as string) ?? 'error'),
-        ts: nowIso(),
-        raw,
-      };
+      // LIVE-VERIFIED: on a failed tool `p.error` is a structured object
+      // ({ name, id, domain, category, cause:{message}, details:{errorMessage} }),
+      // not a string — String(p.error) yielded "[object Object]". Dig out a
+      // human-readable message, falling back to JSON.
+      const err = p.error;
+      let message: string;
+      if (typeof err === 'string') {
+        message = err;
+      } else if (err && typeof err === 'object') {
+        const e = err as Record<string, unknown>;
+        const cause = e.cause as Record<string, unknown> | undefined;
+        const details = e.details as Record<string, unknown> | undefined;
+        message = String(
+          (cause?.message as string) ??
+            (details?.errorMessage as string) ??
+            (e.message as string) ??
+            JSON.stringify(err),
+        );
+      } else {
+        message = String((p.message as string) ?? 'error');
+      }
+      return { type: 'error', message, ts: nowIso(), raw };
     }
     default:
       return null;

@@ -8,6 +8,7 @@
 import { Agent } from '@mastra/core/agent';
 import { Memory } from '@mastra/memory';
 import { makeSearchFixtureCorpusTool } from '../tools/research-tools';
+import { demoModel } from '../lib/model';
 
 export const researcherAgent = new Agent({
   id: 'researcher',
@@ -18,7 +19,7 @@ export const researcherAgent = new Agent({
 Use the search_fixture_corpus tool to gather evidence from the deterministic
 offline corpus. Return a concise, evidence-grounded summary of the hits. Do not
 invent sources; cite only corpus documents. Do not publish anything.`,
-  model: 'openai/gpt-5-mini',
+  model: demoModel,
   tools: { search_fixture_corpus: makeSearchFixtureCorpusTool() },
   memory: new Memory(),
 });

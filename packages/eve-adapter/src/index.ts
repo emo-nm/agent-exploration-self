@@ -162,15 +162,21 @@ export function normalizeEvent(
         raw,
       };
     }
-    case "action.result":
+    case "action.result": {
+      // Verified live: the action result payload is nested under `data.result`
+      // (a RuntimeActionResult with callId, kind, output, and either toolName
+      // for tool-result or subagentName for subagent-result), NOT flattened
+      // onto `data`. `data.status`/`data.error` sit alongside it.
+      const result = (data.result ?? {}) as Record<string, unknown>;
       return {
         type: "tool-result",
-        toolName: String(data.toolName ?? data.name ?? "unknown"),
-        callId: String(data.callId ?? data.id ?? ""),
-        output: data.output ?? data.result,
+        toolName: String(result.toolName ?? result.subagentName ?? "unknown"),
+        callId: String(result.callId ?? ""),
+        output: result.output,
         ts,
         raw,
       };
+    }
     case "subagent.called":
       return {
         type: "subagent",
@@ -182,23 +188,41 @@ export function normalizeEvent(
         ts,
         raw,
       };
-    case "subagent.completed":
+    case "subagent.started":
+      // Inline subagent execution start (distinct from the workflow-backed
+      // `subagent.called`). Field is `data.subagentName`, not `data.name`.
       return {
         type: "subagent",
-        name: String(data.name ?? data.subagent ?? "researcher"),
-        status: "completed",
+        name: String(data.subagentName ?? "researcher"),
+        status: "started",
         ts,
         raw,
       };
-    case "input.requested":
+    case "subagent.completed":
+      // Verified against the live type: the field is `data.subagentName`
+      // (not `data.name`/`data.subagent`); `data.output` carries the result.
+      return {
+        type: "subagent",
+        name: String(data.subagentName ?? "researcher"),
+        status: "completed",
+        detail:
+          typeof data.output === "string" ? data.output.slice(0, 200) : undefined,
+        ts,
+        raw,
+      };
+    case "input.requested": {
       // A HITL pause (approval or ask_question). The demo's approval is
-      // application-owned; surface it so the UI can render a pending card.
+      // application-owned so this did not fire in the live run; field is
+      // `data.requests` (InputRequest[]), each with a `key`.
+      const requests = data.requests as Array<Record<string, unknown>> | undefined;
+      const first = requests?.[0] ?? {};
       return {
         type: "approval-pending",
-        proposalId: String(data.proposalId ?? data.callId ?? ""),
+        proposalId: String(first.key ?? first.id ?? ""),
         ts,
         raw,
       };
+    }
     case "turn.failed":
     case "session.failed":
     case "step.failed":

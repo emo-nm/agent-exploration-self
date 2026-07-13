@@ -126,70 +126,79 @@ export function normalizeConversation(
   for (const message of messages) {
     const ts = message.metadata?.timestamp ?? new Date(0).toISOString();
     for (const part of message.parts) {
-      const event = normalizePart(message, part, ts);
-      if (event) events.push(event);
+      events.push(...normalizePart(message, part, ts));
     }
   }
   return events;
 }
 
+// A single Flue part can normalize to more than one AgentEvent. This matters
+// for materialized history (observe()/history()): a `dynamic-tool` part there
+// is always in a TERMINAL state (`output-available` / `output-error`) — the
+// transient `input-available` state only appears mid-flight on a live stream.
+// The part still carries its `input` in the terminal state, so we synthesize
+// the `tool-call` from it and then the result/error. Without this, replaying a
+// settled conversation yields zero `tool-call` events and drops every tool
+// input. (Verified against a live Flue conversation, 2026-07-12.)
 function normalizePart(
   message: FlueConversationMessage,
   part: FlueConversationPart,
   ts: string,
-): AgentEvent | undefined {
+): AgentEvent[] {
   switch (part.type) {
     case "text":
-      return {
-        type: "message",
-        role: message.role,
-        text: part.text,
-        ts,
-        raw: part,
-      };
+      return [
+        { type: "message", role: message.role, text: part.text, ts, raw: part },
+      ];
     case "reasoning":
       // Reasoning has no dedicated normalized variant; surface as an
       // assistant message so it stays visible, with raw preserved.
-      return {
-        type: "message",
-        role: "assistant",
-        text: part.text,
+      return [
+        { type: "message", role: "assistant", text: part.text, ts, raw: part },
+      ];
+    case "dynamic-tool": {
+      const toolCall: AgentEvent = {
+        type: "tool-call",
+        toolName: part.toolName,
+        callId: part.toolCallId,
+        input: part.input,
         ts,
         raw: part,
       };
-    case "dynamic-tool": {
       if (part.state === "input-available") {
-        return {
-          type: "tool-call",
-          toolName: part.toolName,
-          callId: part.toolCallId,
-          input: part.input,
-          ts,
-          raw: part,
-        };
+        // Live-stream mid-flight: call issued, no result yet.
+        return [toolCall];
       }
       if (part.state === "output-available") {
-        return {
-          type: "tool-result",
-          toolName: part.toolName,
-          callId: part.toolCallId,
-          output: part.output,
+        return [
+          toolCall,
+          {
+            type: "tool-result",
+            toolName: part.toolName,
+            callId: part.toolCallId,
+            output: part.output,
+            ts,
+            raw: part,
+          },
+        ];
+      }
+      // output-error: keep the call visible, then a tool-attributed error.
+      // The contract's error event has no tool fields, so name the tool in
+      // the message to preserve attribution.
+      return [
+        toolCall,
+        {
+          type: "error",
+          message: `${part.toolName}: ${part.errorText}`,
           ts,
           raw: part,
-        };
-      }
-      // output-error
-      return {
-        type: "error",
-        message: part.errorText,
-        ts,
-        raw: part,
-      };
+        },
+      ];
     }
     case "file":
       // No normalized file event; skip but nothing is lost — history() carries it.
-      return undefined;
+      return [];
     default:
-      return undefined;
+      return [];
   }
 }

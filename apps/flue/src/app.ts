@@ -3,8 +3,26 @@
 // (handoff §17). Flue's generated Node server wraps this default export.
 import { Hono } from "hono";
 import { flue } from "@flue/runtime/routing";
+import { registerProvider } from "@flue/runtime";
 import { getStores } from "./shared/stores.ts";
 import { RESEARCH_PUBLISHER_AGENT } from "./shared/instance-id.ts";
+
+// Reach the shared model through OpenRouter's OpenAI-compatible endpoint. This
+// overrides the built-in `openrouter` catalog provider with an explicit
+// baseUrl/apiKey and registers metadata for DEMO_MODEL_ID so an id the local
+// catalog snapshot may not know still resolves. OPENROUTER_API_KEY is loaded
+// from the project-root .env by the Flue CLI before this module runs.
+const DEMO_MODEL_ID = process.env.DEMO_MODEL_ID ?? "anthropic/claude-sonnet-5";
+if (process.env.OPENROUTER_API_KEY) {
+  registerProvider("openrouter", {
+    api: "openai-completions",
+    baseUrl: "https://openrouter.ai/api/v1",
+    apiKey: process.env.OPENROUTER_API_KEY,
+    models: {
+      [DEMO_MODEL_ID]: { contextWindow: 200_000, maxTokens: 8_192 },
+    },
+  });
+}
 
 const app = new Hono();
 

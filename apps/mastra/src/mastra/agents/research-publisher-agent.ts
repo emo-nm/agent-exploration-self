@@ -23,6 +23,7 @@ import { researchAndPublishInstructions } from '../skills/research-and-publish';
 import { makeResearchTools } from '../tools/research-tools';
 import { researcherAgent } from './researcher-agent';
 import { repo } from '../lib/repo';
+import { demoModel } from '../lib/model';
 
 export const researchPublisherAgent = new Agent({
   id: 'research-publisher',
@@ -30,7 +31,7 @@ export const researchPublisherAgent = new Agent({
   description:
     'Research a topic against a fixture corpus, draft an artifact, and publish it after application-owned approval.',
   instructions: researchAndPublishInstructions,
-  model: 'openai/gpt-5-mini',
+  model: demoModel,
   tools: makeResearchTools(repo),
   agents: { researcher: researcherAgent },
   memory: new Memory(),
