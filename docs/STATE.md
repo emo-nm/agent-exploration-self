@@ -4,13 +4,14 @@
 > truth; open the linked code/notes before relying on a row. If your session
 > changes the verdicts or the code, update this file in the same commit.
 
-Last updated: **2026-07-11** (all three direct baselines BUILT: same
-research-and-publish agent in Eve, Flue, and Mastra native idioms + adapter
-packages; typecheck/tests/build pass at root; persistence verified [live]
-against local Postgres. NOT yet run against a model — no API key — so no
-live agent behavior verdicts yet. Comparison UI built (/direct/*, approval
-round-trip verified on Postgres [live]); durability harness in progress.
-Details: [`findings.md`](findings.md); roadmap: [`plan.md`](plan.md).)
+Last updated: **2026-07-12** (all three baselines pass the FULL LIVE loop
+[live]: same model via OpenRouter, real Postgres, approval, exactly-once
+flaky publish, restart-resume. Prompt caching fixed + measured (@demo/model).
+Comparison UI built. Durability matrix: mastra 8/8 credible; flue rerunning
+(first run invalid — driver bug); eve scenarios 1/5 under diagnosis. Full
+rerun in flight = the canonical numbers. Smithers gate pending that rerun.
+Details: [`findings.md`](findings.md); roadmap: [`plan.md`](plan.md);
+synthesis: [`log/2026-07-12-learnings-so-far.md`](log/2026-07-12-learnings-so-far.md).)
 
 ## What this is
 
@@ -67,9 +68,9 @@ untested · **[inf]** = inferred. Only [live] counts for the final memo.
 
 | Candidate | Status | Verdict so far | Evidence |
 |---|---|---|---|
-| Eve (direct) | baseline BUILT (agent+tools+skill+subagent+eve-adapter); tests pass; served health [live]. Model loop unrun (no key) | needed sandbox pin (`justbash`) + build externalDependencies to run outside Vercel; Apache-2.0 [live] | [`log/2026-07-11-eve-baseline-notes.md`](log/2026-07-11-eve-baseline-notes.md) |
-| Flue (direct) | baseline BUILT (agent+tools+skill+subagent profile+flue-adapter); tests pass; `flue dev` health [live]. Model loop unrun (no key) | Valibot-vs-zod double validation tax; `flue build` output can't load raw-TS workspace pkgs (dev-mode only for now); Apache-2.0 [live] | [`log/2026-07-11-flue-baseline-notes.md`](log/2026-07-11-flue-baseline-notes.md) |
-| Mastra (direct) | baseline **built** — research-and-publish agent + native subagent + 4 thin tools + `@demo/mastra-adapter`; typecheck/tests/build pass, server to :3003 health [live] | [live] zod@4.4.3 works (peer warning only); native subagents + tool suspend/resume approval; NO SKILL.md concept (criterion 7 finding); Apache-2.0; ships scorers+observability. Model run + Drizzle path blocked (no keys/DB). See [`log/2026-07-11-mastra-baseline-notes.md`](log/2026-07-11-mastra-baseline-notes.md) | scaffolded Node 24; baseline notes |
+| Eve (direct) | full live loop PASSES [live]; caching fixed via @demo/model (was zero on direct path). Durability 6/8 first run; scenarios 1/5 (kill-mid-model, stream-reconnect) under diagnosis in rerun | direct-provider path sheds platform defaults silently (caching, subagent provider, ctx window) — top lock-in finding; native input.requested approval pause is the most product-shaped; only framework with isolated-by-default prod sandbox (microVM) [doc]; justbash local pin was wrong lever (fix queued); Apache-2.0 [live] | eve notes + [`log/2026-07-11-first-live-runs.md`](log/2026-07-11-first-live-runs.md) + sandbox research |
+| Flue (direct) | full live loop PASSES [live]; self-polled approval inside ONE durable submission; caches natively on direct path; only fw exposing per-prompt cost. First matrix 8/8 INVALID (driver measured submit-ack, not work) — corrected driver rerunning | cleanest provider story (config not agent code); most assembly required; Valibot/zod double-validation tax; build output can't load raw-TS workspace pkgs (dev-mode here; fix = build step for @demo/*); default sandbox is NOT an isolation boundary [doc]; Apache-2.0 [live] | flue notes + first-live-runs + sandbox research |
+| Mastra (direct) | full live loop PASSES [live]; durability 8/8 credible [live] (rerunning post-caching for canonical numbers); was equally uncached on direct path until @demo/model fix | lowest wiring friction; zod4 fine; native subagents; NO skill concept [live] (criterion 7); thin/BYO auth; no default isolation (BYO provider) [doc]; slowest boot ~6.5s; Apache-2.0 [live] | mastra notes + first-live-runs + sandbox research |
 | Smithers orchestrating Eve/Flue (pattern A) | not started — blocked on direct baselines (test-plan) | — | — |
 | Eve/Flue launching bounded Smithers job (pattern B) | not started — same gate | — | — |
 
