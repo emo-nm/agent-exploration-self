@@ -74,11 +74,13 @@ decision memo is the product. Parent context:
    discovered, and composed; hot-reload; what the framework's equivalent even
    is if it lacks a first-class "skill" concept (suspected for Mastra — that
    absence is itself a finding)
-8. Auth story (added 07-11) — end-user identity on sessions (can user A
-   resume user B's thread?), service-to-service auth, and connection/OAuth
-   handling for external tools. Eve's Vercel-integrated auth looks [doc]
-   convenient — verify live, and weigh it against lock-in (criterion 5):
-   the more auth the framework owns, the harder the walk-away
+8. Auth story — RESOLVED 07-13: end-user identity + data permissions are
+   OUR middleware on all three (not framework territory; memo). Verified
+   live on deployed eve: Vercel SSO protects deployments by default; eve
+   ENFORCES real auth in prod (placeholder 401s); a service-token AuthFn
+   cost ~20 lines. Tool-credential OAuth (Plaid etc.) deliberately stays in
+   our vault, never the framework store (migration walkthrough) — the
+   framework-owned-auth lock-in trap avoided by design
 
 ## Verdict so far
 
