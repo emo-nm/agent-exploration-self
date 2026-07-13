@@ -73,8 +73,8 @@ To match with Flue we would stand up:
    2s): resume-turn 37s -> 12.1s, scenario total 19.9s — PASSES the 60s
    bar with a real margin. My first patch hit the Cloudflare coordinator's
    FLUE_AGENT_SUBMISSION_WAKE_SECONDS — wrong target for the Node runtime
-   (a finding about the dual-target codebase in itself). Upstream issue
-   filed asking to expose the knobs / add a single-owner boot fast path.
+   (a finding about the dual-target codebase in itself). Upstream issue filed:
+   withastro/flue#480 (expose the knobs / single-owner boot fast path).
 7. Tool sandbox: bring our own isolation (container/gVisor); flue's
    default sandbox is not an isolation boundary.
 
