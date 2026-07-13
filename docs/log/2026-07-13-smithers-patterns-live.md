@@ -66,10 +66,33 @@ agent framework is rebuilding Smithers badly. Wealth-management workflows
 pipeline-shaped, so the expected prod topology is pattern B: Flue owns the
 client conversation; bounded Smithers runs own the jobs it kicks off.
 
+## 3-way comparison + verdict persistence (2026-07-13, live)
+
+- `compare-backends.tsx` now fans out to ALL THREE backends in parallel: added
+  a plain fetch-based `askEve(prompt, tag)` (POST `/eve/v1/session` to start a
+  durable session, then read the NDJSON stream and keep the `message.completed`
+  event whose `finishReason === "stop"` — its `data.message` is the settled
+  reply). Flue and Mastra worker calls unchanged.
+- Judge is now 3-way: scores all three answers (grounding / concision /
+  latency), presented in a blinded A/B/C order derived deterministically from a
+  hash of the runId (FNV-1a seed -> LCG-driven Fisher-Yates), so the judge
+  never sees a fixed backend order.
+- A trailing `persist` compute task writes ONE row into the main `agent_eval`
+  `comparison_runs` table via Bun's built-in `SQL` (DATABASE_URL from repo
+  .env). Gotcha found live: pass the metrics OBJECT straight into the tagged
+  template (`${metrics}`) — `JSON.stringify(...)::jsonb` double-encodes it and
+  the column ends up a JSON string scalar (`jsonb_typeof` = `string`), not an
+  object.
+- Live 3-way run `run-1783924514000` (Eve :3001 + Flue :3002 + Mastra :3003,
+  all booted locally): finished/succeeded, all three answers present and all
+  cite the corpus, judge verdict **tie** (each scored 4 on
+  grounding/concision/latency; blind order eve/flue/mastra). Row written:
+  `id = cmp_run-1783924514000`, `smithers_run_id = run-1783924514000`,
+  `metrics_json` a proper jsonb object (verdict + all three answers). Both
+  workflows still `graph` clean (exit 0); servers killed after the run.
+
 ## Not done / parked
 
 - Deployment (plan item 12) needs Vercel account actions — parked for a
   session with James present; it is also the memo's one outstanding
   validation.
-- comparison_runs DB write from the judge (schema exists; wire when the
-  comparison pipeline is used in anger).
