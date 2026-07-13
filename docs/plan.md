@@ -57,7 +57,7 @@ thread, duplicate approvals/publishes (8 scenarios, test-plan). Exactly-once
 publication is the pass/fail line. **GATE: no Smithers work until direct Eve
 and Flue pass** — otherwise integration bugs are unattributable.
 
-## Phase 3 — Smithers integration (both directions) [deferred 07-13 — runs against the CHOSEN framework after the decision; see decision-memo.md. It orchestrates the winner, so it can't change who wins.]
+## Phase 3 — Smithers integration (both directions) [DONE minimally 07-13, live — executed AFTER the memo by design. Departure from spec: the `.smithers/` workflow pack replaced apps/smithers as the control plane (8); compute-task HTTP workers replaced AgentLike adapters (9); comparison workflow is 3-way incl. Eve with verdicts persisted to comparison_runs (10); pattern B = Flue tool start_smithers_workflow with allowlist, verified live (11). Evidence: log/2026-07-13-smithers-patterns-live.md]
 
 **8. Initialize the Smithers control plane** (`apps/smithers` HTTP/Gateway;
 `.smithers/` authoring pack already exists).
@@ -100,8 +100,9 @@ phase; update findings every phase; never weaken a failing parity test.
 
 ## Standing open items
 
-- Extend demo-agent spec + layout to Mastra (5b prerequisite).
-- Eve + Flue license check (criterion 5).
+- Extend demo-agent spec + layout to Mastra (5b prerequisite). [done]
+- Eve + Flue license check (criterion 5). [done — Apache-2.0 all three]
+- REMAINING (blocked on James's accounts): `vercel login` -> Eve deploy runbook (deployment.md) + hosted suite rerun; Neon swap; Flue Node-host + Smithers Bun-container deploys. Then memo copy to sprint docs/Notion (INT-27; note Claude Agent SDK + Vercel AI SDK still unevaluated there).
 - Claude Agent SDK / Vercel AI SDK: evaluated elsewhere or dropped? (ticket).
 - Create Neon Postgres via Vercel Marketplace → `DATABASE_URL` (unblocks
   Drizzle-path tests and deployment).
