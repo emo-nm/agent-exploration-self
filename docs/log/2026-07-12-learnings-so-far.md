@@ -83,8 +83,13 @@ durability edges, not on "can it work."
   materialized history, Mastra true async-generator). Every adapter's
   event mapping was wrong somewhere until checked against a live stream.
   Budget real time for this in any product integration.
-- Prompt caching is nobody's default off the home path (fix in flight —
-  shared cache_control wrapper, uniform across frameworks).
+- Prompt caching off the home path: automatic on each framework's blessed
+  route and on Flue's direct path (its runtime stamps cache_control
+  natively); Eve and Mastra silently drop to zero caching on a direct
+  provider until you inject breakpoints yourself. Fixed via shared
+  @demo/model withPromptCaching wrapper, measured (10.6k tokens cached
+  write->read; Eve live shows ~6-7.5k cacheRead/step). Guard:
+  `pnpm check:caching`.
 - Testing durability of async agents is subtle: "the API accepted my
   request" and "the agent is doing work" are different states, and a
   harness (or monitoring system) that conflates them reports fiction.
