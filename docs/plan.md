@@ -26,7 +26,7 @@ are repeatable; the flaky-but-idempotent publish (`DEMO_FAIL_PUBLISH_ATTEMPTS`,
 crash-after-effect) is the probe jabbed into each framework to observe
 retry/durability behavior. Idempotency keys are what make that safe to test.
 
-## Phase 2 — Direct baselines (the core comparison) [built — unrun against a model; steps 6-7 todo]
+## Phase 2 — Direct baselines (the core comparison) [live — all three pass the full loop; durability matrix run, gate pending flake analysis]
 
 **4. Eve baseline** — research-and-publish agent in Eve's native idiom
 (filesystem `agent/`, durable session API, typed client).
@@ -50,7 +50,7 @@ The approve/resume loop needs a human surface; side-by-side streams make
 differences visible instead of anecdotal. Raw inspector preserves native
 events while normalized events enable comparison.
 
-**7. Durability + failure tests.**
+**7. Durability + failure tests.** [run — mastra 8/8, eve 7/8 (real defect found), flue 6/8 (flake analysis in flight); gate not yet open]
 Verdict-generator for the headline criterion: kill mid-model-call, kill
 between tool and next step, restart with approval pending, resume an old
 thread, duplicate approvals/publishes (8 scenarios, test-plan). Exactly-once

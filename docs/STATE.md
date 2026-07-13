@@ -7,9 +7,12 @@
 Last updated: **2026-07-12** (all three baselines pass the FULL LIVE loop
 [live]: same model via OpenRouter, real Postgres, approval, exactly-once
 flaky publish, restart-resume. Prompt caching fixed + measured (@demo/model).
-Comparison UI built. Durability matrix: mastra 8/8 credible; flue rerunning
-(first run invalid — driver bug); eve scenarios 1/5 under diagnosis. Full
-rerun in flight = the canonical numbers. Smithers gate pending that rerun.
+Comparison UI built. Corrected durability matrix (cached wiring): mastra
+8/8, eve 7/8, flue 6/8 — exactly-once held everywhere; eve has a REAL
+kill-mid-turn defect (poison-message replay storm in its local world);
+flue's 2 fails are >240s timeouts pending flake analysis (rerun in
+flight). Smithers gate NOT yet open (binds on eve+flue passing).
+Canonical results: log/2026-07-12-durability-matrix-results.md.
 Details: [`findings.md`](findings.md); roadmap: [`plan.md`](plan.md);
 synthesis: [`log/2026-07-12-learnings-so-far.md`](log/2026-07-12-learnings-so-far.md).)
 
@@ -68,9 +71,9 @@ untested · **[inf]** = inferred. Only [live] counts for the final memo.
 
 | Candidate | Status | Verdict so far | Evidence |
 |---|---|---|---|
-| Eve (direct) | full live loop PASSES [live]; caching fixed via @demo/model (was zero on direct path). Durability 6/8 first run; scenarios 1/5 (kill-mid-model, stream-reconnect) under diagnosis in rerun | direct-provider path sheds platform defaults silently (caching, subagent provider, ctx window) — top lock-in finding; native input.requested approval pause is the most product-shaped; only framework with isolated-by-default prod sandbox (microVM) [doc]; justbash local pin was wrong lever (fix queued); Apache-2.0 [live] | eve notes + [`log/2026-07-11-first-live-runs.md`](log/2026-07-11-first-live-runs.md) + sandbox research |
-| Flue (direct) | full live loop PASSES [live]; self-polled approval inside ONE durable submission; caches natively on direct path; only fw exposing per-prompt cost. First matrix 8/8 INVALID (driver measured submit-ack, not work) — corrected driver rerunning | cleanest provider story (config not agent code); most assembly required; Valibot/zod double-validation tax; build output can't load raw-TS workspace pkgs (dev-mode here; fix = build step for @demo/*); default sandbox is NOT an isolation boundary [doc]; Apache-2.0 [live] | flue notes + first-live-runs + sandbox research |
-| Mastra (direct) | full live loop PASSES [live]; durability 8/8 credible [live] (rerunning post-caching for canonical numbers); was equally uncached on direct path until @demo/model fix | lowest wiring friction; zod4 fine; native subagents; NO skill concept [live] (criterion 7); thin/BYO auth; no default isolation (BYO provider) [doc]; slowest boot ~6.5s; Apache-2.0 [live] | mastra notes + first-live-runs + sandbox research |
+| Eve (direct) | full live loop PASSES [live]; durability 7/8 [live] — REAL defect: SIGKILL mid-turn leaves forever-replaying poisoned queue messages in the local world, degrading resume (isolated repro proves clean crash-resume works otherwise, 12.9s); scenario-5 fail was our adapter cursor bug (fixed) | direct-provider path sheds platform defaults silently (caching, subagent provider, ctx window) — top lock-in finding; native input.requested approval pause is the most product-shaped; only framework with isolated-by-default prod sandbox (microVM) [doc]; justbash local pin was wrong lever (fix queued); Apache-2.0 [live] | eve notes + [`log/2026-07-11-first-live-runs.md`](log/2026-07-11-first-live-runs.md) + sandbox research |
+| Flue (direct) | full live loop PASSES [live]; durability 6/8 [live] with corrected observe-to-checkpoint driver — both fails are >240s timeouts (self-polling cadence + stale-SQLite boot gotcha suspected), flake analysis in flight; exactly-once held everywhere | cleanest provider story (config not agent code); most assembly required; Valibot/zod double-validation tax; build output can't load raw-TS workspace pkgs (dev-mode here; fix = build step for @demo/*); default sandbox is NOT an isolation boundary [doc]; Apache-2.0 [live] | flue notes + first-live-runs + sandbox research |
+| Mastra (direct) | full live loop PASSES [live]; durability 8/8 TWICE [live] (pre- and post-caching, 152s total cached) — cleanest durability record of the three | lowest wiring friction; zod4 fine; native subagents; NO skill concept [live] (criterion 7); thin/BYO auth; no default isolation (BYO provider) [doc]; slowest boot ~6.5s; Apache-2.0 [live] | mastra notes + first-live-runs + sandbox research |
 | Smithers orchestrating Eve/Flue (pattern A) | not started — blocked on direct baselines (test-plan) | — | — |
 | Eve/Flue launching bounded Smithers job (pattern B) | not started — same gate | — | — |
 
