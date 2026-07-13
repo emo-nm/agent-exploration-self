@@ -221,6 +221,45 @@ by pace (260.9s), eve fails it by defect. Mastra passed it in 17.5s.
   all three concurrently, each against its own database
   (`agent_eval_{eve,flue,mastra}`) so reset/truncate can't cross-talk.
 
+## Fast-suite matrix under the 60s bar (2026-07-13)
+
+First full run of the fast suite (short constrained turn, 60s settle bar,
+flue+mastra in parallel via `scripts/eval-durability-all.sh`, eve solo after
+a harness crash — see gotcha below). Clean stores, per-backend databases.
+
+| # | scenario | eve | flue | mastra |
+|---|---|---|---|---|
+| 1 | kill-during-model-work | FAIL >60s | PASS 56.7s | PASS 19.6s |
+| 2 | kill-after-tool-success | PASS 2.3s | PASS 1.6s | PASS 7.1s |
+| 3 | restart-approval-pending | PASS 2.1s | PASS 1.6s | PASS 6.6s |
+| 4 | resume-saved-thread | FAIL >60s | PASS 22.9s | PASS 24.3s |
+| 5 | stream-disconnect-reconnect | PASS 4.2s | PASS 3.1s | PASS 7.9s |
+| 6 | duplicate-user-input | PASS 9.4s | PASS 11.1s | PASS 9.4s |
+| 7 | duplicate-approval | PASS | PASS | PASS |
+| 8 | duplicate-publication-request | PASS | PASS | PASS |
+| | **total** | **6/8, 155s** | **8/8, 99s** | **8/8, 83s** |
+
+Reading:
+- **flue 8/8** — its earlier failures were turn-length, not durability: with
+  a short turn, crash-resume settles at 56.7s (recovery overhead is roughly
+  fixed ~45s: poll cadence + post-kill SQLite recovery). CAVEAT for the memo:
+  56.7s is under the bar only because the turn is tiny; a real-length turn
+  stacks on that fixed overhead and would exceed 60s (measured: 260.9s with
+  the full research turn).
+- **eve 6/8** — scenario 1 is the confirmed replay-storm defect failing fast
+  at the bar; scenario 4's resume ALSO exceeds 60s in the same suite run
+  (the storm from s1's kill degrades every later resume — compounding, as
+  documented in section b). s4 passed at 56.8s under the old 240s budget on
+  a less-poisoned world; under the 60s bar it fails.
+- **mastra 8/8** — third consecutive full pass; comfortably under the bar
+  everywhere (worst resume 24.3s).
+- Suite wall-clock: ~2.5 min for all three (parallel), vs ~7-13+ min per
+  backend sequential before.
+- Harness gotcha: with all three suites in parallel, eve's harness process
+  crashed on its first request with Node 24 undici `setTypeOfService EINVAL`
+  (socket-close race on localhost under load). Our bug, not eve's; rerun
+  solo passed cleanly. Add retry-on-EINVAL if it recurs.
+
 ## Where this leaves the gate
 
 Test-plan gate ("no Smithers work until direct eve and flue pass"): NOT open.
