@@ -287,6 +287,39 @@ not tunable without patching the framework — itself a memo-grade finding
 for crash-recovery-latency-sensitive products. (Which constant governs is
 not fully pinned; the non-configurability is what matters.) [live]
 
+## Classifying findings: architectural vs config/environment (user call, 07-13)
+
+Direction from James: a lot of found downsides may be config or environment
+setup — worth picking out, but not evidence for "which framework should we
+use." Memo must score on the ARCHITECTURAL bucket; artifacts get demoted to
+setup notes. Classification of everything so far:
+
+**Architectural (survives any config — memo-grade):**
+- flue: ~30s takeover wait on crash-resume is a HARD-CODED runtime constant
+  (verified in bundled source), a deliberate no-double-execution lease
+  trade. Not tunable without patching.
+- mastra: turns are client-driven; an abandoned request can kill the turn.
+  Weakest durability architecture despite the cleanest matrix record.
+- eve: approval primitive most product-shaped; isolated-by-default prod
+  sandbox; deepest platform coupling.
+- all three: exactly-once held in every scenario (positive, architectural).
+- skill concept (mastra: none), auth story, license — architectural.
+
+**Config/environment artifacts (setup notes, NOT framework verdicts):**
+- flue stale-SQLite cold-boot 503s (local dev store).
+- eve local-world queue replay storm — [live] against the LOCAL world only;
+  prod eve runs Vercel-hosted queues, may dead-letter properly. Deploy phase
+  retests this before it's allowed to count against eve in the memo.
+- our own: eve start-vs-dev, justbash pin, harness undici crash.
+
+**Middle bucket — "just a default," but defaults are signal (repo rule):**
+- eve silently shedding prompt caching (and other platform defaults) on the
+  direct-provider path: fixable config, but the SILENCE of the degradation
+  is lock-in evidence (criterion 5), not a durability demerit.
+
+The deploy phase is the deconfounder: same scenarios against prod-shaped
+environments decide which artifact-bucket items evaporate.
+
 ## Where this leaves the gate
 
 Test-plan gate ("no Smithers work until direct eve and flue pass"): NOT open.
