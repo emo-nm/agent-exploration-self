@@ -4,32 +4,19 @@
 > truth; open the linked code/notes before relying on a row. If your session
 > changes the verdicts or the code, update this file in the same commit.
 
-Last updated: **2026-07-13c** (EVE DEPLOYED TO VERCEL PROD [live]: full hosted loop passed (exactly-once on Neon); redeploy-mid-turn -> same-session reattach in 2.7s — local replay-storm defect confirmed HOSTED-ONLY-ABSENT; auth enforced (placeholder 401s in prod, service-token AuthFn ~20 lines). FINAL RECOMMENDATION FLIPPED TO EVE+VERCEL (memo): hosted eve best-in-test on recovery + team won't operate non-Vercel hosts; owned neutral core = walk-away insurance. usage/cost event normalized across all 3 [live]; voice loop built 3x + verified live; smithers 3-way compare incl. EVE [live] with verdict persisted to comparison_runs. all three baselines pass the FULL LIVE loop
-[live]. Prompt caching fixed + measured (@demo/model). Comparison UI built.
-Durability: mastra 8/8, eve 7/8, flue 6/8 — exactly-once held everywhere.
-Scenario-1 (kill-mid-turn) resolved by a 600s rerun on clean stores:
-**flue is SLOW not stuck** (passes at 260.9s), **eve is STUCK** (fails at
-600s — poison-message replay storm confirmed as a hard defect in its local
-world). NEW PRODUCT BAR (user, 07-13): crash-resume must complete in <=60s;
-harness now encodes it (SETTLE_TURN_MS=60s). Suite made fast + parallel
-(short durability turn, per-backend DBs, `scripts/eval-durability-all.sh`;
-all three in ~2.5 min). FAST-SUITE MATRIX under the bar: **flue 8/8**
-(99s — earlier fails were turn-length; fixed ~45s recovery overhead, so
-real-length turns still exceed the bar), **mastra 8/8** (83s, third
-consecutive), **eve 6/8** (s1 replay-storm defect + s4 collateral: the
-storm degrades later resumes). Smithers gate ruling superseded 07-13: user reframed transient/local
-failures as non-disqualifying, so Smithers phase ran (after the memo, by
-design) — patterns A+B live, 3-way compare incl. Eve, verdicts persisted.
-Canonical results: log/2026-07-12-durability-matrix-results.md.
-**DECISION MEMO FINAL: [`decision-memo.md`](decision-memo.md)** —
-Eve+Vercel behind our owned framework-neutral core (flipped from the
-pre-deploy Flue lean by the hosted results above + the no-external-hosting
-constraint). Mastra = velocity runner-up / exit candidate; Flue =
-correctness pick for a team that operates hosts. Auth: product middleware,
-not framework territory (eve's service-token AuthFn measured at ~20 lines).
-Next: memo to sprint board/Notion (INT-27).
-Details: [`findings.md`](findings.md); roadmap: [`plan.md`](plan.md);
-synthesis: [`log/2026-07-12-learnings-so-far.md`](log/2026-07-12-learnings-so-far.md).)
+Last updated: **2026-07-13** — EVAL COMPLETE. Final recommendation
+(memo): **Eve + Vercel behind our owned framework-neutral core**; Mastra =
+velocity runner-up / exit candidate; Flue = correctness pick if we ever
+operate our own hosts. Eve is DEPLOYED to Vercel prod [live]
+(native-money/eve + Neon): full hosted loop passed (exactly-once held),
+redeploy-mid-turn reattached the same session in 2.7s (the local
+replay-storm defect is hosted-absent), auth is enforced (service-token
+AuthFn ~20 lines), and a hosted VOICE turn works in prod. Flue's 30s
+crash-recovery wait is root-caused (hard-coded 30s lease + 15s scan;
+patch proves 37s->12.1s; upstream withastro/flue#480). All 8 criteria
+scored [live]. Remaining: memo -> sprint board/Notion (INT-27).
+Full history: the dated logs below; canonical durability numbers:
+log/2026-07-12-durability-matrix-results.md.
 
 ## What this is
 
@@ -57,9 +44,11 @@ decision memo is the product. Parent context:
 | Deployment | [`deployment.md`](deployment.md) | Eve DEPLOYED to Vercel prod [live] 07-13 (native-money/eve + Neon); full hosted loop + redeploy-mid-turn validated; flue/mastra/smithers local-only by scope decision |
 | Sandbox/isolation comparison (Eve microVM default vs Flue/Mastra BYO) | [`log/2026-07-12-sandbox-research.md`](log/2026-07-12-sandbox-research.md) | [doc] researched 07-12 — only Eve isolates by default in prod; justbash pin removed 07-13 |
 | Smithers integration (patterns A+B live, 3-way compare, observability answer) | [`log/2026-07-13-smithers-patterns-live.md`](log/2026-07-13-smithers-patterns-live.md) | [live] 07-13 — use LOCAL .smithers CLI, global has React clash |
-| Voice loop 3x (@demo/voice seam; mastra native vs eve/flue BYO) | [`log/2026-07-13-voice-wiring.md`](log/2026-07-13-voice-wiring.md) | [live] 07-13 — criterion 6 closed |
+| Voice loop 3x (@demo/voice seam; mastra native vs eve/flue BYO) | [`log/2026-07-13-voice-wiring.md`](log/2026-07-13-voice-wiring.md) | [live] 07-13 — criterion 6 closed; also verified against DEPLOYED eve prod (/voice/turn, 131s cold round trip; eve channel is self-contained by necessity — one-chunk bundler rule) |
 | Normalized usage/cost event (all 3 adapters + UI + evals) | [`log/2026-07-13-usage-event.md`](log/2026-07-13-usage-event.md) | [live] 07-13 — mastra exposes no cost on stream (finding) |
 | DECISION MEMO (FINAL: Eve+Vercel behind owned neutral core; hosted deciding-match results) | [`decision-memo.md`](decision-memo.md) | FINAL 07-13 — next: copy to sprint board/Notion |
+| Flue 30s crash-recovery root cause (lease 30s + scan 15s, hard-coded; patch -> 12.1s resume; upstream withastro/flue#480) | [`log/2026-07-13-migration-and-selfhost.md`](log/2026-07-13-migration-and-selfhost.md) item 6 + `patches/@flue__runtime.patch` | [live] 07-13 — patch is checked in, env-gated (FLUE_LEASE_* via harness passthrough), defaults unchanged |
+| Migration walkthrough (Plaid/bank OAuth stays in OUR vault) + flue self-host cost report | [`log/2026-07-13-migration-and-selfhost.md`](log/2026-07-13-migration-and-selfhost.md) | current 07-13 — team-facing companion to the memo |
 | Findings per framework | [`findings.md`](findings.md) (from `findings-template.md`) | phases 1-3 recorded per candidate |
 | Learnings synthesis (through first live runs + first matrix) | [`log/2026-07-12-learnings-so-far.md`](log/2026-07-12-learnings-so-far.md) | snapshot 07-12 — headline: all three complete the loop [live]; Eve escape-hatch/lock-in finding; Flue driver invalidated its first matrix; Mastra 8/8 credible |
 
@@ -99,7 +88,7 @@ untested · **[inf]** = inferred. Only [live] counts for the final memo.
 | Candidate | Status | Verdict so far | Evidence |
 |---|---|---|---|
 | Eve (direct) | full live loop PASSES [live]; durability 6/8 under the 60s bar [live] — REAL defect: SIGKILL mid-turn leaves forever-replaying poisoned queue messages in the local world, degrading resume (isolated repro proves clean crash-resume works otherwise, 12.9s); scenario-5 fail was our adapter cursor bug (fixed) | direct-provider path sheds platform defaults silently (caching, subagent provider, ctx window) — top lock-in finding; native input.requested approval pause is the most product-shaped; only framework with isolated-by-default prod sandbox (microVM) [doc]; justbash local pin REMOVED 07-13 (stock defaults restored; build verified); Apache-2.0 [live] | eve notes + [`log/2026-07-11-first-live-runs.md`](log/2026-07-11-first-live-runs.md) + sandbox research |
-| Flue (direct) | full live loop PASSES [live]; durability **8/8 under the 60s bar** [live] with the fast suite (crash-resume 56.7s) — earlier fails were turn-length: recovery overhead is fixed ~45s, so real-length turns exceed the bar (260.9s measured); exactly-once held everywhere | cleanest provider story (config not agent code); most assembly required; Valibot/zod double-validation tax; build output can't load raw-TS workspace pkgs (dev-mode here; fix = build step for @demo/*); default sandbox is NOT an isolation boundary [doc]; Apache-2.0 [live] | flue notes + first-live-runs + sandbox research |
+| Flue (direct) | full live loop PASSES [live]; durability **8/8 under the 60s bar** [live] with the fast suite (crash-resume 56.7s) — earlier fails were turn-length: recovery overhead was the hard-coded 30s lease + 15s scan (root-caused; patched env-tunable -> 12.1s resume [live]; upstream #480); exactly-once held everywhere | cleanest provider story (config not agent code); most assembly required; Valibot/zod double-validation tax; build output can't load raw-TS workspace pkgs (dev-mode here; fix = build step for @demo/*); default sandbox is NOT an isolation boundary [doc]; Apache-2.0 [live] | flue notes + first-live-runs + sandbox research |
 | Mastra (direct) | full live loop PASSES [live]; durability 8/8 TWICE [live] (pre- and post-caching, 152s total cached) — cleanest durability record of the three | lowest wiring friction; zod4 fine; native subagents; NO skill concept [live] (criterion 7); thin/BYO auth; no default isolation (BYO provider) [doc]; slowest boot ~6.5s; Apache-2.0 [live] | mastra notes + first-live-runs + sandbox research |
 | Smithers orchestrating the frameworks (pattern A) | DONE [live] 07-13: flue-research workflow (settled Flue turn -> durable Approval -> refine on same thread); compare-backends fans the same prompt to ALL THREE in parallel, blinded 3-way judge, verdict persisted to comparison_runs (row cmp_run-1783924514000) | adapter pain finding: Flue ~1 HTTP call (?wait=result), Mastra ~25 lines (thread+SSE), Eve NDJSON session stream; all fit in compute tasks | [`log/2026-07-13-smithers-patterns-live.md`](log/2026-07-13-smithers-patterns-live.md) |
 | Product agent launching bounded Smithers job (pattern B) | DONE [live] 07-13: Flue tool start_smithers_workflow (fixed allowlist) spawned a detached compare run; parent session stayed live, child run finished independently — section-4 ownership rule held | expected prod topology per memo: framework owns the conversation, Smithers runs own the jobs | same log |
