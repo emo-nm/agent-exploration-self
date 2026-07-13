@@ -34,3 +34,5 @@ smithers.db-wal
 
 # durability harness results (ephemeral run artifacts)
 .eval-results/
+.vercel
+.env*

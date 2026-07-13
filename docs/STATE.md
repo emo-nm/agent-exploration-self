@@ -4,7 +4,7 @@
 > truth; open the linked code/notes before relying on a row. If your session
 > changes the verdicts or the code, update this file in the same commit.
 
-Last updated: **2026-07-13b** (usage/cost event normalized across all 3 [live]; voice loop built 3x + verified live; smithers 3-way compare incl. EVE [live] with verdict persisted to comparison_runs. all three baselines pass the FULL LIVE loop
+Last updated: **2026-07-13c** (EVE DEPLOYED TO VERCEL PROD [live]: full hosted loop passed (exactly-once on Neon); redeploy-mid-turn -> same-session reattach in 2.7s — local replay-storm defect confirmed HOSTED-ONLY-ABSENT; auth enforced (placeholder 401s in prod, service-token AuthFn ~20 lines). FINAL RECOMMENDATION FLIPPED TO EVE+VERCEL (memo): hosted eve best-in-test on recovery + team won't operate non-Vercel hosts; owned neutral core = walk-away insurance. usage/cost event normalized across all 3 [live]; voice loop built 3x + verified live; smithers 3-way compare incl. EVE [live] with verdict persisted to comparison_runs. all three baselines pass the FULL LIVE loop
 [live]. Prompt caching fixed + measured (@demo/model). Comparison UI built.
 Durability: mastra 8/8, eve 7/8, flue 6/8 — exactly-once held everywhere.
 Scenario-1 (kill-mid-turn) resolved by a 600s rerun on clean stores:

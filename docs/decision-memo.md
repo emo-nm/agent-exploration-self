@@ -199,13 +199,81 @@ ops-grade run management; for a single app's pipelines, each framework's
 OWN workflow engine likely suffices first. Park Smithers as an optional
 layer; details in log/2026-07-13-smithers-patterns-live.md.
 
-## What happens next (in order, none of it tonight)
+## The deciding match: Eve hosted on Vercel — RESULTS (07-13, all [live])
 
-1. Prod-shaped validation: deploy Flue to a Node host + Eve to Vercel, run
-   the suite remotely (redeploy-mid-turn replaces SIGKILL). Confirms the
-   recommendation or promotes Mastra.
-2. Productionize the usage/cost event (approved 07-12) into the winner.
-3. Smithers orchestration patterns against the winner (pattern A/B from the
-   test plan) — deliberately after the framework choice, not before.
-4. Memo copy to the sprint board / Notion ticket (INT-27; note Claude Agent
-   SDK + Vercel AI SDK named on the ticket remain unevaluated here).
+We deployed Eve to Vercel production (project `native-money/eve`, Neon
+Postgres via the marketplace) and ran the loop for real. Everything below
+happened first-hand against the deployed app.
+
+**What passed:**
+- Full loop hosted: real research turn (14.9s), corpus search, durable
+  session; seeded approval in Neon; the deliberately-flaky publish failed
+  twice ON VERCEL and succeeded on the third attempt with EXACTLY ONE
+  effect row in Neon. The core correctness invariant holds hosted.
+- **The decisive durability probe:** started a turn, confirmed model work
+  in flight, then REDEPLOYED PRODUCTION mid-turn (a real instance
+  replacement — prod's version of our SIGKILL tests). Reattached to the
+  same session on the NEW deployment: complete answer, 22 events, in
+  **2.7 seconds**. The turn had finished server-side despite the redeploy.
+  The local "poison queue storm" defect DOES NOT EXIST hosted — it was a
+  local-world artifact, exactly as we'd hypothesized and refused to score
+  until proven.
+- Auth is genuinely pre-wired and ENFORCED: Vercel SSO protects
+  deployments by default (zero config), and eve refuses production
+  traffic on placeholder auth (observed 401). Wiring a real service-token
+  provider was ~20 lines. Criterion 8 answered.
+- Deploy effort: about an hour from zero to validated prod, including the
+  findings below. Neon provisioning was two clicks + CLI.
+
+**What it cost (the lock-in taxes, all found live during this deploy):**
+1. Eve's channel bundler requires one chunk per authored module — it could
+   NOT load our shared raw-TS `@demo/voice` package (works in `eve dev`,
+   fails in `eve build`). We had to inline the voice channel. Same family
+   as the caching finding: leave eve's happy path and shared code breaks.
+2. The checked-in root vercel.json (web app's) hijacks the build; eve needs
+   its own config passed explicitly (`-A apps/eve/vercel.json`).
+3. Everything good about hosted eve (queue durability, SSO, sandbox,
+   dashboards) is Vercel infrastructure, not portable framework behavior.
+
+## FINAL RECOMMENDATION (for the team)
+
+**Build the product on Eve + Vercel, behind our owned framework-neutral
+core.** This reverses the pre-deploy lean toward Flue, for one decisive
+reason plus one practical one:
+
+- Hosted eve measured BEST-IN-TEST on the property we care most about:
+  crash/redeploy recovery in 2.7s (vs Flue's ~33s hard-coded takeover wait
+  and Mastra's client-owned turns), with exactly-once intact and auth
+  enforced by default.
+- We are not going to operate a Node host, a Bun container, and a database
+  for this (James, 07-13: nothing gets hosted outside Vercel — no time).
+  That constraint eliminates Flue's deployment story in practice, whatever
+  its architectural merits. An architecture we won't operate isn't an
+  option; it's a slide.
+
+The lock-in is real — three concrete escape-hatch taxes measured — and the
+mitigation is the structure we already proved: contracts, effects
+(idempotency), persistence, approvals, prompts, and the usage/cost event
+all live in OUR packages; eve touches them through thin adapters. We built
+the same agent three times in days with that layout; that is the walk-away
+insurance if Vercel pricing/behavior turns against us. Keep the durability
+suite green in CI against the deployed app so the insurance stays honest.
+
+**Runner-ups, honestly stated:** Mastra remains the velocity pick and the
+first candidate if we ever leave Vercel (best DX, cleanest matrix record,
+native voice module — but client-driven turns mean we'd own more
+durability discipline). Flue remains the correctness-by-construction pick
+for a team willing to operate its host — we weren't. Smithers: optional
+pipeline layer, proven working against all three; revisit when jobs span
+agents.
+
+## What happens next
+
+1. Copy this memo to the sprint board / Notion ticket (INT-27; note Claude
+   Agent SDK + Vercel AI SDK named on the ticket remain unevaluated here).
+2. Point the durability suite at the deployed eve on a schedule
+   (EVE_BASE_URL + service token; redeploy-mid-turn as the kill).
+3. Product auth: swap the service-token AuthFn for Clerk/Auth.js + thread
+   ownership column (schema already has the fields).
+4. Keep the usage/cost event flowing into whatever observability stack the
+   team standardizes on (it's already normalized at the contracts layer).
