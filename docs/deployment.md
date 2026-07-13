@@ -67,6 +67,28 @@ minimum the web app needs `NEXT_PUBLIC_APP_URL` and the `*_BASE_URL` /
 - Durability matrix: `pnpm eval:durability --backend eve|flue|mastra`
   (results in `.eval-results/`, gitignored).
 
+## Eve on Vercel — DEPLOYED [live] 07-13 (preview; prod blocked on Neon terms)
+
+Project `native-money/eve` (rootDirectory=apps/eve, framework auto-detected
+`eve`, config `apps/eve/vercel.json` — the ROOT vercel.json is the web app's
+and hijacks the build if applied; deploy with `-A apps/eve/vercel.json`).
+Preview `https://eve-bjdc9tzyc-native-money.vercel.app` is Ready and serving.
+Findings so far:
+- Build finding (memo-grade): eve's channel bundler requires ONE chunk per
+  authored module — it could not bundle a channel importing raw-TS
+  @demo/voice (works locally under `eve dev`, fails in `eve build`). Voice
+  channel made self-contained; same escape-hatch-tax family as caching.
+- Auth finding: deployment protection (Vercel SSO) is ON by default with
+  zero config — criterion 8's "pre-wired auth" is real at the deployment
+  layer. Harness access via a generated protection-bypass secret
+  (x-vercel-protection-bypass header; secret in the project, not the repo).
+- Env: OPENROUTER_API_KEY, DEMO_MODEL_ID, DEMO_FAIL_PUBLISH_ATTEMPTS set.
+  DATABASE_URL pending Neon (terms acceptance -> `vercel integration add
+  neon` -> migrate -> `vercel deploy --prod -A apps/eve/vercel.json`).
+- Then the hosted validation: EVE_BASE_URL=<prod> harness run; kill
+  scenarios become `vercel redeploy` mid-turn; watch whether the hosted
+  queue dead-letters interrupted turns (vs the local replay storm).
+
 ## Eve -> Vercel runbook (READY — build verified 07-13; needs the account)
 
 The deciding test from decision-memo.md. `pnpm --filter eve build` passes
