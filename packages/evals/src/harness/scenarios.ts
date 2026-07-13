@@ -21,14 +21,19 @@ export interface ScenarioDef {
   phases: Phase[];
 }
 
-const PROMPT = EVAL_CASES[0]!.prompt;
+// Durability scenarios need A real model turn to interrupt, not a long one:
+// constrain the turn so the whole suite runs fast. The full research task
+// stays in the baseline demo; override with EVAL_PROMPT to run it here.
+const PROMPT =
+  process.env.EVAL_PROMPT ??
+  `${EVAL_CASES[0]!.prompt} (Answer in 1-2 sentences from a single corpus search. Do not delegate to a subagent. Do not create a proposal.)`;
 
-// Per-phase budgets. Eve on the direct provider path has NO prompt caching, so
-// a cold research turn is ~85s and grows with context; size accordingly and
-// fail with a clear message rather than leaning on undici's opaque 300s default
-// (the earlier "fetch failed" after 385s/432s was that default firing).
-const SETTLE_TURN_MS = 240_000; // full research/resume turn to completion
-const MODEL_STARTED_MS = 120_000; // just until the first model event
+// Per-phase budgets. 60s settle is the PRODUCT BAR (2026-07-13): a resumed
+// turn that takes longer than a minute fails the requirement, so the budget
+// encodes it — a slower framework is a finding, not a harness artifact.
+// Named errors, never undici's opaque 300s default.
+const SETTLE_TURN_MS = Number(process.env.EVAL_SETTLE_TURN_MS ?? 60_000); // full turn to completion
+const MODEL_STARTED_MS = 60_000; // just until the first model event
 const RECONNECT_MS = 60_000; // reattach + read one event
 
 /** Race a promise against a timeout with a clear, phase-attributed message. */

@@ -4,14 +4,17 @@
 > truth; open the linked code/notes before relying on a row. If your session
 > changes the verdicts or the code, update this file in the same commit.
 
-Last updated: **2026-07-12** (all three baselines pass the FULL LIVE loop
-[live]: same model via OpenRouter, real Postgres, approval, exactly-once
-flaky publish, restart-resume. Prompt caching fixed + measured (@demo/model).
-Comparison UI built. Corrected durability matrix (cached wiring): mastra
-8/8, eve 7/8, flue 6/8 — exactly-once held everywhere; eve has a REAL
-kill-mid-turn defect (poison-message replay storm in its local world);
-flue's 2 fails are >240s timeouts pending flake analysis (rerun in
-flight). Smithers gate NOT yet open (binds on eve+flue passing).
+Last updated: **2026-07-13** (all three baselines pass the FULL LIVE loop
+[live]. Prompt caching fixed + measured (@demo/model). Comparison UI built.
+Durability: mastra 8/8, eve 7/8, flue 6/8 — exactly-once held everywhere.
+Scenario-1 (kill-mid-turn) resolved by a 600s rerun on clean stores:
+**flue is SLOW not stuck** (passes at 260.9s), **eve is STUCK** (fails at
+600s — poison-message replay storm confirmed as a hard defect in its local
+world). NEW PRODUCT BAR (user, 07-13): crash-resume must complete in <=60s;
+harness now encodes it (SETTLE_TURN_MS=60s), and today only mastra meets it
+(17.5s). Suite made fast + parallel: short durability prompt, per-backend
+DBs, `scripts/eval-durability-all.sh`. Smithers gate NOT open (binds on
+eve+flue passing kill-mid-turn under the bar).
 Canonical results: log/2026-07-12-durability-matrix-results.md.
 Details: [`findings.md`](findings.md); roadmap: [`plan.md`](plan.md);
 synthesis: [`log/2026-07-12-learnings-so-far.md`](log/2026-07-12-learnings-so-far.md).)

@@ -189,12 +189,43 @@ all 15 harness unit tests pass.
 - **Mastra local stores** (`mastra.db*`, `mastra.duckdb*`) accumulate; wiped
   between backend suites for comparability.
 
+## Scenario-1 decisive rerun @600s budget, clean stores (2026-07-13)
+
+Question: at 240s both eve and flue fail scenario 1 — are they slow or stuck?
+Run: scenario 1 only, per backend, `EVAL_SETTLE_TURN_MS=600000`, wiped local
+stores (`.eval-results/durability-{flue,eve}-live-2026-07-13T04-1*/2*.json`
+era; console: flue PASS 260.9s, eve FAIL 605.5s).
+
+- **flue: SLOW, not stuck.** Passed at 260.9s — the resumed turn does settle;
+  it just exceeds any reasonable interactive budget. Root causes as suspected:
+  submit-then-poll cadence + post-SIGKILL SQLite recovery.
+- **eve: STUCK.** Failed even at 600s on a clean `.workflow-data`. The
+  poison-message replay-storm defect is confirmed as a hard failure, not a
+  slow path: one SIGKILL mid-turn is enough to make resume of that thread
+  not complete in 10 minutes.
+
+### Product bar set 2026-07-13: resume must complete within 60s
+
+User requirement: a crash-resume that takes more than 1 minute is a failure
+regardless of whether it eventually settles. The harness now encodes this —
+`SETTLE_TURN_MS` defaults to 60s. Under that bar, TODAY: flue fails scenario 1
+by pace (260.9s), eve fails it by defect. Mastra passed it in 17.5s.
+
+### Harness speed changes (same date)
+
+- Durability scenarios now drive a deliberately SHORT model turn (1-2 sentence
+  answer, one search, no subagent, no proposal) — the durability question is
+  "does the turn survive", not "can it do a long research task". Override with
+  `EVAL_PROMPT` to run the full task.
+- Suite parallelized across backends: `scripts/eval-durability-all.sh` runs
+  all three concurrently, each against its own database
+  (`agent_eval_{eve,flue,mastra}`) so reset/truncate can't cross-talk.
+
 ## Where this leaves the gate
 
-Test-plan gate ("no Smithers work until direct eve and flue pass"): NOT yet
-open as of this run. eve has one real framework defect on kill-mid-turn
-(replay storm); flue has two unresolved timeout failures pending flake
-analysis. mastra would pass a gate but the gate binds on eve+flue.
-Next: repeat the failing scenarios to separate flake from defect, and
-consider whether a 240s uniform budget is fair to flue's polling design
-(changing it for one backend must be recorded, not silent).
+Test-plan gate ("no Smithers work until direct eve and flue pass"): NOT open.
+The 600s rerun resolved flake-vs-defect: eve fails scenario 1 with a confirmed
+defect (stuck at 600s); flue completes but at 260.9s, over the 60s product bar
+by 4x. Mastra alone meets the bar. The gate binds on eve+flue, so it stays
+shut on kill-mid-turn; the fast parallel suite makes reruns cheap enough to
+retest after any mitigation (e.g. flue tuning, eve queue drain).
