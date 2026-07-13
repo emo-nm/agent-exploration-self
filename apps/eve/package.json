@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@demo/contracts": "workspace:*",
+    "@demo/voice": "workspace:*",
     "@demo/domain": "workspace:*",
     "@demo/effects": "workspace:*",
     "@demo/model": "workspace:*",
@@ -32,6 +33,7 @@
   "devDependencies": {
     "@types/node": "24.x",
     "just-bash": "*",
+    "microsandbox": "^0.6.6",
     "typescript": "7.0.2",
     "vitest": "^2.1.0"
   },
@@ -41,5 +43,4 @@
   "engines": {
     "node": "24.x"
   }
-
 }

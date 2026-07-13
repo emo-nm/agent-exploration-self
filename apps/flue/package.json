@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@demo/contracts": "workspace:*",
+    "@demo/voice": "workspace:*",
     "@demo/domain": "workspace:*",
     "@demo/effects": "workspace:*",
     "@demo/persistence": "workspace:*",

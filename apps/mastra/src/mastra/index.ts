@@ -1,6 +1,7 @@
 
 import { Mastra } from '@mastra/core/mastra';
 import { registerApiRoute } from '@mastra/core/server';
+import { createSpeech, handleVoiceTurn, voiceTurnResponseBody } from '@demo/voice';
 import { PinoLogger } from '@mastra/loggers';
 import { LibSQLStore } from '@mastra/libsql';
 import { DuckDBStore } from "@mastra/duckdb";
@@ -30,6 +31,34 @@ export const mastra = new Mastra({
             backend: 'mastra',
             agents: ['research-publisher', 'researcher', 'weather-agent'],
           }),
+      }),
+      // Voice loop (criterion 6). Symmetric with Eve/Flue's /voice/turn so the
+      // comparison UI/harness hits one shape everywhere. This app-level endpoint
+      // uses @demo/voice for STT/TTS and drives the turn via agent.generate;
+      // Mastra ALSO gives the agent a native `voice` capability (see the agent
+      // file) — this route exists for parity, not because Mastra lacks voice.
+      registerApiRoute('/voice/turn', {
+        method: 'POST',
+        handler: async (c) => {
+          let speech;
+          try {
+            speech = createSpeech(); // throws if OPENAI_API_KEY unset
+          } catch (err) {
+            return c.json({ error: (err as Error).message }, 503);
+          }
+          const result = await handleVoiceTurn(c.req.raw, {
+            speech,
+            runTurn: async (transcript, threadId) => {
+              const agent = c.get('mastra').getAgent('researchPublisherAgent');
+              const thread = threadId ?? 'voice-thread';
+              const res = await agent.generate(transcript, {
+                memory: { thread, resource: thread },
+              });
+              return res.text ?? '';
+            },
+          });
+          return c.json(voiceTurnResponseBody(result));
+        },
       }),
     ],
   },

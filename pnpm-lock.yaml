@@ -38,12 +38,15 @@ importers:
       '@demo/prompts':
         specifier: workspace:*
         version: link:../../packages/prompts
+      '@demo/voice':
+        specifier: workspace:*
+        version: link:../../packages/voice
       '@openrouter/ai-sdk-provider':
         specifier: 3.0.0
         version: 3.0.0(ai@7.0.22(zod@4.4.3))(zod@4.4.3)
       '@vercel/connect':
         specifier: 0.2.2
-        version: 0.2.2(ai@7.0.22(zod@4.4.3))(eve@0.22.5(@libsql/client@0.17.4)(@opentelemetry/api@1.9.0)(ai@7.0.22(zod@4.4.3))(dotenv@17.4.2)(drizzle-orm@0.36.4(@libsql/client@0.17.4)(@opentelemetry/api@1.9.0)(@types/pg@8.20.0)(@types/react@19.2.17)(pg@8.22.0)(react@19.2.7)(sql.js@1.14.1))(just-bash@3.1.0)(lru-cache@11.5.2)(miniflare@4.20260708.1)(rollup@4.62.2)(vite@5.4.21(@types/node@24.13.3)(lightningcss@1.32.0))(wrangler@4.110.0))
+        version: 0.2.2(ai@7.0.22(zod@4.4.3))(eve@0.22.5(@libsql/client@0.17.4)(@opentelemetry/api@1.9.0)(ai@7.0.22(zod@4.4.3))(dotenv@17.4.2)(drizzle-orm@0.36.4(@libsql/client@0.17.4)(@opentelemetry/api@1.9.0)(@types/pg@8.20.0)(@types/react@19.2.17)(pg@8.22.0)(react@19.2.7)(sql.js@1.14.1))(just-bash@3.1.0)(lru-cache@11.5.2)(microsandbox@0.6.6)(miniflare@4.20260708.1)(rollup@4.62.2)(vite@5.4.21(@types/node@24.13.3)(lightningcss@1.32.0))(wrangler@4.110.0))
       ai:
         specifier: ^7.0.0
         version: 7.0.22(zod@4.4.3)
@@ -52,7 +55,7 @@ importers:
         version: 0.36.4(@libsql/client@0.17.4)(@opentelemetry/api@1.9.0)(@types/pg@8.20.0)(@types/react@19.2.17)(pg@8.22.0)(react@19.2.7)(sql.js@1.14.1)
       eve:
         specifier: ^0.22.5
-        version: 0.22.5(@libsql/client@0.17.4)(@opentelemetry/api@1.9.0)(ai@7.0.22(zod@4.4.3))(dotenv@17.4.2)(drizzle-orm@0.36.4(@libsql/client@0.17.4)(@opentelemetry/api@1.9.0)(@types/pg@8.20.0)(@types/react@19.2.17)(pg@8.22.0)(react@19.2.7)(sql.js@1.14.1))(just-bash@3.1.0)(lru-cache@11.5.2)(miniflare@4.20260708.1)(rollup@4.62.2)(vite@5.4.21(@types/node@24.13.3)(lightningcss@1.32.0))(wrangler@4.110.0)
+        version: 0.22.5(@libsql/client@0.17.4)(@opentelemetry/api@1.9.0)(ai@7.0.22(zod@4.4.3))(dotenv@17.4.2)(drizzle-orm@0.36.4(@libsql/client@0.17.4)(@opentelemetry/api@1.9.0)(@types/pg@8.20.0)(@types/react@19.2.17)(pg@8.22.0)(react@19.2.7)(sql.js@1.14.1))(just-bash@3.1.0)(lru-cache@11.5.2)(microsandbox@0.6.6)(miniflare@4.20260708.1)(rollup@4.62.2)(vite@5.4.21(@types/node@24.13.3)(lightningcss@1.32.0))(wrangler@4.110.0)
       pg:
         specifier: ^8.13.0
         version: 8.22.0
@@ -66,6 +69,9 @@ importers:
       just-bash:
         specifier: '*'
         version: 3.1.0
+      microsandbox:
+        specifier: ^0.6.6
+        version: 0.6.6
       typescript:
         specifier: 7.0.2
         version: 7.0.2
@@ -90,6 +96,9 @@ importers:
       '@demo/prompts':
         specifier: workspace:*
         version: link:../../packages/prompts
+      '@demo/voice':
+        specifier: workspace:*
+        version: link:../../packages/voice
       '@flue/runtime':
         specifier: 1.0.0-beta.9
         version: 1.0.0-beta.9(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(typebox@1.1.38)(typescript@5.9.3)(ws@8.21.0)(zod-to-json-schema@3.25.2(zod@4.4.3))(zod@4.4.3)
@@ -139,6 +148,9 @@ importers:
       '@demo/prompts':
         specifier: workspace:*
         version: link:../../packages/prompts
+      '@demo/voice':
+        specifier: workspace:*
+        version: link:../../packages/voice
       '@mastra/core':
         specifier: ^1.50.1
         version: 1.50.1(express@5.2.1)(zod@4.4.3)
@@ -328,6 +340,9 @@ importers:
       typescript:
         specifier: ^5.6.0
         version: 5.9.3
+      vitest:
+        specifier: ^2.1.0
+        version: 2.1.9(@types/node@26.1.1)(lightningcss@1.32.0)
 
   packages/flue-adapter:
     dependencies:
@@ -414,6 +429,25 @@ importers:
         specifier: ^5.6.0
         version: 5.9.3
 
+  packages/voice:
+    dependencies:
+      '@ai-sdk/openai':
+        specifier: ^4.0.11
+        version: 4.0.11(zod@4.4.3)
+      ai:
+        specifier: ^7.0.22
+        version: 7.0.22(zod@4.4.3)
+    devDependencies:
+      tsx:
+        specifier: ^4.23.0
+        version: 4.23.0
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.0
+        version: 2.1.9(@types/node@26.1.1)(lightningcss@1.32.0)
+
 packages:
 
   '@a2a-js/sdk@0.3.14':
@@ -433,6 +467,12 @@ packages:
 
   '@ai-sdk/gateway@4.0.16':
     resolution: {integrity: sha512-9iYxdOLquoOFk5e+02P9qfBIA+EJU0FNJvyjGxi4iXJabt2+GlbaCg7TX0sTtxOsBVkdabkatqWM6+kvp53tBg==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
+
+  '@ai-sdk/openai@4.0.11':
+    resolution: {integrity: sha512-2PLnVPBsdJusgquPVYgPWd3ox4lbUFkp7DVUSmM0lQ4VISQoNxdgo6TvFAHgwQn9wJ/ckVYVRLU7+BvHc7T8ww==}
     engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -2380,6 +2420,36 @@ packages:
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
+  '@superradcompany/microsandbox-darwin-arm64@0.6.6':
+    resolution: {integrity: sha512-rw7cg0G9mj1c9/14K/K6PMg78H11rGRA5tDzRbx67kAeoKWpAJnFsIYLvOCHcD+6aM0Xdxote90FVVlt1Kknjw==}
+    engines: {node: '>= 22'}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@superradcompany/microsandbox-linux-arm64-gnu@0.6.6':
+    resolution: {integrity: sha512-y4CdSPkSOtCwBNbG8Yhkahxg9yh/jpp4cBMOItCOj0JshU7luE2r4+6ceIrPNAkb8sF0fX7tNTXMDK4fJA8iFA==}
+    engines: {node: '>= 22'}
+    cpu: [arm64]
+    os: [linux]
+
+  '@superradcompany/microsandbox-linux-x64-gnu@0.6.6':
+    resolution: {integrity: sha512-9yo6/G454L8ebzZP1qMxjIXRD3zJqQ68w2p9Ust7B7MOj5hr+VyuVZ0kYjSJAc4GSI0fno2xQe5z2tp5ynk78A==}
+    engines: {node: '>= 22'}
+    cpu: [x64]
+    os: [linux]
+
+  '@superradcompany/microsandbox-win32-arm64-msvc@0.6.6':
+    resolution: {integrity: sha512-q22t1DVlB8FR90adjBxTf0i//f3yzm7QYsKbsar29zoUAHC/24h6R4LE6YfIDWtPKB8jvTSpCeMehFoyXyLN1Q==}
+    engines: {node: '>= 22'}
+    cpu: [arm64]
+    os: [win32]
+
+  '@superradcompany/microsandbox-win32-x64-msvc@0.6.6':
+    resolution: {integrity: sha512-m2ir3DNw+Sc7i2DEg1kgY9bFmFHCFt2KamnXzJMUL9qtkE2n11GqIUhQJtKXwcWyM7nH0AxooMmnbx7UDMG8Ww==}
+    engines: {node: '>= 22'}
+    cpu: [x64]
+    os: [win32]
+
   '@swc/helpers@0.5.15':
     resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
 
@@ -4158,6 +4228,11 @@ packages:
     resolution: {integrity: sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA==}
     engines: {node: '>=8.6'}
 
+  microsandbox@0.6.6:
+    resolution: {integrity: sha512-KF1HcZH61qw3QUEDQouIbtaS6LcrKIYf5fJOyauje+8sqzUcjcMZVqwngligNhEyLCH1+TtHnZbIOp9Ndf7k7g==}
+    engines: {node: '>= 22'}
+    hasBin: true
+
   mime-db@1.33.0:
     resolution: {integrity: sha512-BHJ/EKruNIqJf/QahvxwQZXKygOQ256myeN/Ew+THcAa5q+PjyTTMMeNQC4DZw5AwfvelsUrA6B67NKMqXDbzQ==}
     engines: {node: '>= 0.6'}
@@ -5508,6 +5583,12 @@ snapshots:
       '@ai-sdk/provider': 4.0.3
       '@ai-sdk/provider-utils': 5.0.7(zod@4.4.3)
       '@vercel/oidc': 3.2.0
+      zod: 4.4.3
+
+  '@ai-sdk/openai@4.0.11(zod@4.4.3)':
+    dependencies:
+      '@ai-sdk/provider': 4.0.3
+      '@ai-sdk/provider-utils': 5.0.7(zod@4.4.3)
       zod: 4.4.3
 
   '@ai-sdk/provider-utils@2.2.8(zod@4.4.3)':
@@ -7338,6 +7419,21 @@ snapshots:
 
   '@standard-schema/spec@1.1.0': {}
 
+  '@superradcompany/microsandbox-darwin-arm64@0.6.6':
+    optional: true
+
+  '@superradcompany/microsandbox-linux-arm64-gnu@0.6.6':
+    optional: true
+
+  '@superradcompany/microsandbox-linux-x64-gnu@0.6.6':
+    optional: true
+
+  '@superradcompany/microsandbox-win32-arm64-msvc@0.6.6':
+    optional: true
+
+  '@superradcompany/microsandbox-win32-x64-msvc@0.6.6':
+    optional: true
+
   '@swc/helpers@0.5.15':
     dependencies:
       tslib: 2.8.1
@@ -7501,12 +7597,12 @@ snapshots:
     dependencies:
       execa: 5.1.1
 
-  '@vercel/connect@0.2.2(ai@7.0.22(zod@4.4.3))(eve@0.22.5(@libsql/client@0.17.4)(@opentelemetry/api@1.9.0)(ai@7.0.22(zod@4.4.3))(dotenv@17.4.2)(drizzle-orm@0.36.4(@libsql/client@0.17.4)(@opentelemetry/api@1.9.0)(@types/pg@8.20.0)(@types/react@19.2.17)(pg@8.22.0)(react@19.2.7)(sql.js@1.14.1))(just-bash@3.1.0)(lru-cache@11.5.2)(miniflare@4.20260708.1)(rollup@4.62.2)(vite@5.4.21(@types/node@24.13.3)(lightningcss@1.32.0))(wrangler@4.110.0))':
+  '@vercel/connect@0.2.2(ai@7.0.22(zod@4.4.3))(eve@0.22.5(@libsql/client@0.17.4)(@opentelemetry/api@1.9.0)(ai@7.0.22(zod@4.4.3))(dotenv@17.4.2)(drizzle-orm@0.36.4(@libsql/client@0.17.4)(@opentelemetry/api@1.9.0)(@types/pg@8.20.0)(@types/react@19.2.17)(pg@8.22.0)(react@19.2.7)(sql.js@1.14.1))(just-bash@3.1.0)(lru-cache@11.5.2)(microsandbox@0.6.6)(miniflare@4.20260708.1)(rollup@4.62.2)(vite@5.4.21(@types/node@24.13.3)(lightningcss@1.32.0))(wrangler@4.110.0))':
     dependencies:
       '@vercel/oidc': 3.6.1
     optionalDependencies:
       ai: 7.0.22(zod@4.4.3)
-      eve: 0.22.5(@libsql/client@0.17.4)(@opentelemetry/api@1.9.0)(ai@7.0.22(zod@4.4.3))(dotenv@17.4.2)(drizzle-orm@0.36.4(@libsql/client@0.17.4)(@opentelemetry/api@1.9.0)(@types/pg@8.20.0)(@types/react@19.2.17)(pg@8.22.0)(react@19.2.7)(sql.js@1.14.1))(just-bash@3.1.0)(lru-cache@11.5.2)(miniflare@4.20260708.1)(rollup@4.62.2)(vite@5.4.21(@types/node@24.13.3)(lightningcss@1.32.0))(wrangler@4.110.0)
+      eve: 0.22.5(@libsql/client@0.17.4)(@opentelemetry/api@1.9.0)(ai@7.0.22(zod@4.4.3))(dotenv@17.4.2)(drizzle-orm@0.36.4(@libsql/client@0.17.4)(@opentelemetry/api@1.9.0)(@types/pg@8.20.0)(@types/react@19.2.17)(pg@8.22.0)(react@19.2.7)(sql.js@1.14.1))(just-bash@3.1.0)(lru-cache@11.5.2)(microsandbox@0.6.6)(miniflare@4.20260708.1)(rollup@4.62.2)(vite@5.4.21(@types/node@24.13.3)(lightningcss@1.32.0))(wrangler@4.110.0)
 
   '@vercel/detect-agent@1.2.3': {}
 
@@ -8207,13 +8303,14 @@ snapshots:
 
   etag@1.8.1: {}
 
-  eve@0.22.5(@libsql/client@0.17.4)(@opentelemetry/api@1.9.0)(ai@7.0.22(zod@4.4.3))(dotenv@17.4.2)(drizzle-orm@0.36.4(@libsql/client@0.17.4)(@opentelemetry/api@1.9.0)(@types/pg@8.20.0)(@types/react@19.2.17)(pg@8.22.0)(react@19.2.7)(sql.js@1.14.1))(just-bash@3.1.0)(lru-cache@11.5.2)(miniflare@4.20260708.1)(rollup@4.62.2)(vite@5.4.21(@types/node@24.13.3)(lightningcss@1.32.0))(wrangler@4.110.0):
+  eve@0.22.5(@libsql/client@0.17.4)(@opentelemetry/api@1.9.0)(ai@7.0.22(zod@4.4.3))(dotenv@17.4.2)(drizzle-orm@0.36.4(@libsql/client@0.17.4)(@opentelemetry/api@1.9.0)(@types/pg@8.20.0)(@types/react@19.2.17)(pg@8.22.0)(react@19.2.7)(sql.js@1.14.1))(just-bash@3.1.0)(lru-cache@11.5.2)(microsandbox@0.6.6)(miniflare@4.20260708.1)(rollup@4.62.2)(vite@5.4.21(@types/node@24.13.3)(lightningcss@1.32.0))(wrangler@4.110.0):
     dependencies:
       ai: 7.0.22(zod@4.4.3)
       nitro: 3.0.260610-beta(@libsql/client@0.17.4)(dotenv@17.4.2)(drizzle-orm@0.36.4(@libsql/client@0.17.4)(@opentelemetry/api@1.9.0)(@types/pg@8.20.0)(@types/react@19.2.17)(pg@8.22.0)(react@19.2.7)(sql.js@1.14.1))(lru-cache@11.5.2)(miniflare@4.20260708.1)(rollup@4.62.2)(vite@5.4.21(@types/node@24.13.3)(lightningcss@1.32.0))(wrangler@4.110.0)
     optionalDependencies:
       '@opentelemetry/api': 1.9.0
       just-bash: 3.1.0
+      microsandbox: 0.6.6
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -9252,6 +9349,14 @@ snapshots:
     dependencies:
       braces: 3.0.3
       picomatch: 2.3.2
+
+  microsandbox@0.6.6:
+    optionalDependencies:
+      '@superradcompany/microsandbox-darwin-arm64': 0.6.6
+      '@superradcompany/microsandbox-linux-arm64-gnu': 0.6.6
+      '@superradcompany/microsandbox-linux-x64-gnu': 0.6.6
+      '@superradcompany/microsandbox-win32-arm64-msvc': 0.6.6
+      '@superradcompany/microsandbox-win32-x64-msvc': 0.6.6
 
   mime-db@1.33.0: {}
 

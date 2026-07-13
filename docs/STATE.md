@@ -4,7 +4,7 @@
 > truth; open the linked code/notes before relying on a row. If your session
 > changes the verdicts or the code, update this file in the same commit.
 
-Last updated: **2026-07-13** (all three baselines pass the FULL LIVE loop
+Last updated: **2026-07-13b** (usage/cost event normalized across all 3 [live]; voice loop built 3x + verified live; smithers 3-way compare incl. EVE [live] with verdict persisted to comparison_runs. all three baselines pass the FULL LIVE loop
 [live]. Prompt caching fixed + measured (@demo/model). Comparison UI built.
 Durability: mastra 8/8, eve 7/8, flue 6/8 — exactly-once held everywhere.
 Scenario-1 (kill-mid-turn) resolved by a 600s rerun on clean stores:
@@ -66,12 +66,15 @@ decision memo is the product. Parent context:
 5. Lock-in — how hard to walk away, incl. license (Mastra: Apache-2.0 ✓ — no
    source-available obligation, fork rights, patent grant; Eve + Flue licenses
    unchecked — verify, and flag anything AGPL/BUSL/SSPL-shaped)
-6. Can it host a live voice loop (or only turn-based text)? — scored 07-13
-   at installed-package level [doc]: Mastra has a first-class voice module in
-   core (MastraVoice/CompositeVoice, AISDK speech+transcription, voice event
-   map on agents); Eve and Flue have NO voice surface (Flue's channels treat
-   audio as a message attachment type; Eve is turn-based text). No live voice
-   loop was built here — memo carries the caveat.
+6. Can it host a live voice loop? — BUILT 3x + [live] 07-13: shared
+   @demo/voice seam (AI SDK tts-1/whisper-1); Mastra wired via its NATIVE
+   voice module (CompositeVoice — only framework with one, but it does NOT
+   auto-expose HTTP routes, and its voice types lag on AI SDK v5); Eve and
+   Flue have NO voice concept — each got a thin BYO /voice/turn endpoint.
+   Live: seam round-trip exact (5.3s), and a full spoken-question ->
+   agent-turn -> spoken-answer loop against flue :3002 [live]. Finding:
+   voice is app work everywhere; mastra only wins the speech-provider glue.
+   See log/2026-07-13-voice-wiring.md.
 7. Skill authoring & discovery (added 07-11) — how custom skills are defined,
    discovered, and composed; hot-reload; what the framework's equivalent even
    is if it lacks a first-class "skill" concept (suspected for Mastra — that
