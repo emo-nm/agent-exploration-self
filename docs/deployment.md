@@ -1,7 +1,7 @@
-# Deployment
+# Deployment (living spec)
 
-Scaffold notes. Fill in with measured details as services are implemented (see
-handoff section 6 "Runtime topology" and section 22 "Definition of done").
+Promoted from the historical handoff (sections 6, 25) + measured local setup.
+Fill in measured deploy details as phase 4 lands.
 
 ## Topology
 
@@ -10,8 +10,9 @@ handoff section 6 "Runtime topology" and section 22 "Definition of done").
 | `apps/web`     | http://localhost:3000   | **Vercel**                            |
 | `apps/eve`     | http://localhost:3001   | **Vercel**                            |
 | `apps/flue`    | http://localhost:3002   | Persistent Node / container host      |
+| `apps/mastra`  | http://localhost:3003   | Node host / Mastra Cloud (evaluate)   |
 | `apps/smithers`| http://localhost:7331   | Bun-capable container                 |
-| Postgres       | —                       | Shared managed Postgres               |
+| Postgres       | localhost:5432 (brew)   | Neon via Vercel Marketplace           |
 
 Do not force Flue or Smithers into a Vercel runtime just to say everything is on
 Vercel. The web app may proxy all runtimes behind one UI.
@@ -44,8 +45,27 @@ Copy `.env.example` and set the relevant values in the Vercel project. At
 minimum the web app needs `NEXT_PUBLIC_APP_URL` and the `*_BASE_URL` /
 `*_SERVICE_TOKEN` pairs for whichever runtimes it proxies.
 
-## TODO
+## Local development (working today, [live])
 
-- Deploy `apps/eve` to Vercel (separate project) once the Eve baseline exists.
+- Node 24 (`.nvmrc`; `fnm use 24`). `pnpm install` from root.
+- Postgres: brew `postgresql@17` service, db `agent_eval`, migrated via
+  drizzle-kit (`packages/persistence`). launchd keeps it up; `pg_isready`
+  to check. `.env`: `DATABASE_URL=postgresql://localhost:5432/agent_eval`.
+- Model: OpenRouter (`OPENROUTER_API_KEY`, `DEMO_MODEL_ID` in `.env`) — one
+  provider for all three frameworks (comparison fairness). Prompt caching
+  via `@demo/model` wrapper (Eve/Mastra) and natively (Flue);
+  `pnpm check:caching` verifies (costs money, not in default tests).
+- Eve local: use `eve dev` (auto-installs sandbox backend), NOT `eve start`
+  (prod serve; the justbash pin that worked around this is being removed —
+  see log/2026-07-12-sandbox-research.md).
+- Durability matrix: `pnpm eval:durability --backend eve|flue|mastra`
+  (results in `.eval-results/`, gitignored).
+
+## TODO (phase 4)
+
+- Deploy `apps/eve` to Vercel (separate project); verify sandbox resolves
+  to Vercel Sandbox microVM (no lingering local backend pin).
 - Provision the Flue host and Smithers Bun container.
-- Provision shared Postgres and set `DATABASE_URL`.
+- Neon Postgres via Vercel Marketplace; swap `DATABASE_URL`; re-run
+  migrations; keep local brew Postgres for dev.
+- Mastra deploy target decision (plain Node host vs Mastra Cloud).
