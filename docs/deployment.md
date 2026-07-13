@@ -61,10 +61,31 @@ minimum the web app needs `NEXT_PUBLIC_APP_URL` and the `*_BASE_URL` /
 - Durability matrix: `pnpm eval:durability --backend eve|flue|mastra`
   (results in `.eval-results/`, gitignored).
 
-## TODO (phase 4)
+## Eve -> Vercel runbook (READY — build verified 07-13; needs the account)
 
-- Deploy `apps/eve` to Vercel (separate project); verify sandbox resolves
-  to Vercel Sandbox microVM (no lingering local backend pin).
+The deciding test from decision-memo.md. `pnpm --filter eve build` passes
+clean (nitro `.output/`, Vercel-native, bundles @vercel/oidc). Steps, all
+mechanical once logged into Vercel:
+
+1. `cd apps/eve && vercel link` (new project, root = apps/eve).
+2. Project env vars: `DATABASE_URL` (Neon — provision via Vercel
+   Marketplace), `OPENROUTER_API_KEY`, `DEMO_MODEL_ID`. Migrate:
+   `DATABASE_URL=... pnpm --filter @demo/persistence exec drizzle-kit migrate`.
+3. Confirm no local sandbox pin ships (apps/eve/agent/sandbox.ts — prod
+   must resolve to Vercel Sandbox microVM).
+4. `vercel deploy --prod`, then point the harness at it:
+   `EVE_BASE_URL=https://<deployment> pnpm eval:durability --backend eve`
+   (kill scenarios become redeploy-mid-turn: `vercel redeploy` during a
+   turn instead of SIGKILL).
+5. What it decides (memo's open questions): does the hosted queue
+   dead-letter interrupted turns (vs the local replay storm); is
+   observability/auth/sandbox genuinely pre-wired with good UX; what the
+   platform dashboard actually shows per run.
+
+## TODO (rest of phase 4)
+
+- Deploy `apps/eve` to Vercel per the runbook above; verify sandbox
+  resolves to Vercel Sandbox microVM (no lingering local backend pin).
 - Provision the Flue host and Smithers Bun container.
 - Neon Postgres via Vercel Marketplace; swap `DATABASE_URL`; re-run
   migrations; keep local brew Postgres for dev.

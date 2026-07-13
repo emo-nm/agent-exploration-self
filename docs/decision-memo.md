@@ -124,6 +124,81 @@ drop auth as an eval criterion, spec it as product middleware (JWT/session
 check in front of the agent routes + ownership column on threads — the
 schema already has thread ownership fields ready).
 
+## Reframe (07-13, James): the question is iteration speed x correctness
+
+Direction: assume all three CAN do the product. The real question is which
+lets us iterate fastest, most correctly, in the least time — and Eve's
+benefits are unknowable until it runs hosted on Vercel. Scoring the
+reframed criteria:
+
+**Agents scoped to users (permissions over their data).** No framework does
+data permissions for you — in all three, sessions are keyed by IDs we mint,
+so "user A can't touch user B's threads/data" is our middleware plus an
+ownership column, identical code everywhere [live-shaped: that's how all
+three apps here are built]. Differences at the edges: Flue documents the
+cleanest pattern (`app.use('/agents/*', requireUser)` — it's just Hono
+middleware) [doc]; Mastra is the same BYO; Eve on Vercel claims integrated
+user identity on sessions [doc] — potentially the least glue, but
+unverified and lock-in-shaped. Verdict: near-tie locally; Eve MAY win in
+the Vercel env — deploy test decides.
+
+**Observability / persistence / retries — pre-set-up UX.**
+- Locally measured: Mastra has the best dev-loop visibility (playground,
+  storage you can open) [live]; Flue has the best audit substrate (durable
+  materialized history + per-submission settlement records) [live]; Eve
+  local was the most opaque — diagnosing its queue behavior took us a
+  server-log archaeology session [live].
+- Eve's whole pitch is that the HOSTED env flips this: platform dashboard,
+  traces, queue management pre-integrated [doc]. That is exactly the
+  unverified claim the deploy test exists for.
+- Retries: Flue recovers autonomously and conservatively [live]; Mastra
+  leaves retry of a dropped turn to the caller [live]; Eve local retried
+  dead work forever [live, local-only].
+
+**Workflows, expressiveness, typing, MDX, TS DX.**
+- Typing: Mastra is zod4-native end to end — schemas in, typed tools out,
+  no translation layer; the best DX of the three [live]. Flue pays a
+  valibot/zod double-validation tax at every tool boundary [live]. Eve is
+  TS-first and fine, filesystem-first agent layout [live].
+- Workflow engines: all three ship one (Mastra workflows with
+  suspend/resume, Eve's workflow world, Flue's detached workflows) — we
+  exercised none of them in anger [not live]; this matters because
+  framework-native workflows may cover our pipeline needs without Smithers.
+- MDX/typed prompts: NONE of the three has typed-MDX prompts natively.
+  Eve and Flue treat markdown skills as first-class files [live]; Mastra
+  has no skill/prompt-file concept at all [live] — we generated its
+  instructions from our own prompts package. (Smithers, notably, DOES have
+  .mdx prompt components — an argument for keeping prompts in our own
+  neutral package regardless, which is what we did.)
+- Measured iteration proxy (time-to-working-agent during the build phase):
+  Mastra fastest, Eve middle, Flue slowest (most assembly, plus its build
+  can't load raw-TS workspace packages) [live].
+
+**Reweighted bottom line.** Under "velocity x correctness":
+- **Mastra** wins raw iteration speed and typing DX today [live], at the
+  cost of owning more durability discipline ourselves (client-driven
+  turns; we'd lean on its workflow engine).
+- **Flue** wins correctness-by-construction [live], at a real velocity tax.
+- **Eve** is the only one whose main value proposition is still unmeasured
+  — it lives in the hosted env. If Vercel-hosted Eve delivers pre-wired
+  observability, auth glue, sandbox, and sane queue behavior, it plausibly
+  wins the overall question despite lock-in; if not, the answer is
+  Mastra-for-velocity vs Flue-for-correctness, leaning Mastra given the
+  reframe.
+The deploy test is therefore not a formality — it's the deciding match.
+**The repo is deploy-ready for it**: `apps/eve` builds clean
+(`pnpm --filter eve build` → `.output/`, Vercel-native), runbook in
+`docs/deployment.md`.
+
+**Smithers, scoped to what matters:** works with Flue and Mastra [live —
+pattern A ran both in parallel under one durable run; pattern B had the
+Flue agent launch a bounded run via an allowlisted tool]. Eve would slot
+into the same HTTP-worker shape via the adapter that already exists [inf].
+Does it make sense here? Only when jobs span agents/backends and need
+ops-grade run management; for a single app's pipelines, each framework's
+OWN workflow engine likely suffices first. Park Smithers as an optional
+layer; details in log/2026-07-13-smithers-patterns-live.md.
+
 ## What happens next (in order, none of it tonight)
 
 1. Prod-shaped validation: deploy Flue to a Node host + Eve to Vercel, run
