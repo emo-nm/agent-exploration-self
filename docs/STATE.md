@@ -53,7 +53,7 @@ decision memo is the product. Parent context:
 | Architecture + demo-agent spec (incl. Mastra) | [`architecture.md`](architecture.md) | current — promoted from handoff 07-11 |
 | Test plan (durability suite, gate, security, adapters) | [`test-plan.md`](test-plan.md) | current — promoted from handoff 07-11 |
 | Deployment | [`deployment.md`](deployment.md) | local-dev section current [live]; deploy targets specced, unexecuted |
-| Sandbox/isolation comparison (Eve microVM default vs Flue/Mastra BYO) | [`log/2026-07-12-sandbox-research.md`](log/2026-07-12-sandbox-research.md) | [doc] researched 07-12 — only Eve isolates by default in prod; our justbash pin was the wrong local lever (fix queued) |
+| Sandbox/isolation comparison (Eve microVM default vs Flue/Mastra BYO) | [`log/2026-07-12-sandbox-research.md`](log/2026-07-12-sandbox-research.md) | [doc] researched 07-12 — only Eve isolates by default in prod; justbash pin removed 07-13 |
 | Findings per framework | [`findings.md`](findings.md) (from `findings-template.md`) | phases 1-3 recorded per candidate |
 | Learnings synthesis (through first live runs + first matrix) | [`log/2026-07-12-learnings-so-far.md`](log/2026-07-12-learnings-so-far.md) | snapshot 07-12 — headline: all three complete the loop [live]; Eve escape-hatch/lock-in finding; Flue driver invalidated its first matrix; Mastra 8/8 credible |
 
@@ -66,7 +66,12 @@ decision memo is the product. Parent context:
 5. Lock-in — how hard to walk away, incl. license (Mastra: Apache-2.0 ✓ — no
    source-available obligation, fork rights, patent grant; Eve + Flue licenses
    unchecked — verify, and flag anything AGPL/BUSL/SSPL-shaped)
-6. Can it host a live voice loop (or only turn-based text)?
+6. Can it host a live voice loop (or only turn-based text)? — scored 07-13
+   at installed-package level [doc]: Mastra has a first-class voice module in
+   core (MastraVoice/CompositeVoice, AISDK speech+transcription, voice event
+   map on agents); Eve and Flue have NO voice surface (Flue's channels treat
+   audio as a message attachment type; Eve is turn-based text). No live voice
+   loop was built here — memo carries the caveat.
 7. Skill authoring & discovery (added 07-11) — how custom skills are defined,
    discovered, and composed; hot-reload; what the framework's equivalent even
    is if it lacks a first-class "skill" concept (suspected for Mastra — that
@@ -84,7 +89,7 @@ untested · **[inf]** = inferred. Only [live] counts for the final memo.
 
 | Candidate | Status | Verdict so far | Evidence |
 |---|---|---|---|
-| Eve (direct) | full live loop PASSES [live]; durability 6/8 under the 60s bar [live] — REAL defect: SIGKILL mid-turn leaves forever-replaying poisoned queue messages in the local world, degrading resume (isolated repro proves clean crash-resume works otherwise, 12.9s); scenario-5 fail was our adapter cursor bug (fixed) | direct-provider path sheds platform defaults silently (caching, subagent provider, ctx window) — top lock-in finding; native input.requested approval pause is the most product-shaped; only framework with isolated-by-default prod sandbox (microVM) [doc]; justbash local pin was wrong lever (fix queued); Apache-2.0 [live] | eve notes + [`log/2026-07-11-first-live-runs.md`](log/2026-07-11-first-live-runs.md) + sandbox research |
+| Eve (direct) | full live loop PASSES [live]; durability 6/8 under the 60s bar [live] — REAL defect: SIGKILL mid-turn leaves forever-replaying poisoned queue messages in the local world, degrading resume (isolated repro proves clean crash-resume works otherwise, 12.9s); scenario-5 fail was our adapter cursor bug (fixed) | direct-provider path sheds platform defaults silently (caching, subagent provider, ctx window) — top lock-in finding; native input.requested approval pause is the most product-shaped; only framework with isolated-by-default prod sandbox (microVM) [doc]; justbash local pin REMOVED 07-13 (stock defaults restored; build verified); Apache-2.0 [live] | eve notes + [`log/2026-07-11-first-live-runs.md`](log/2026-07-11-first-live-runs.md) + sandbox research |
 | Flue (direct) | full live loop PASSES [live]; durability **8/8 under the 60s bar** [live] with the fast suite (crash-resume 56.7s) — earlier fails were turn-length: recovery overhead is fixed ~45s, so real-length turns exceed the bar (260.9s measured); exactly-once held everywhere | cleanest provider story (config not agent code); most assembly required; Valibot/zod double-validation tax; build output can't load raw-TS workspace pkgs (dev-mode here; fix = build step for @demo/*); default sandbox is NOT an isolation boundary [doc]; Apache-2.0 [live] | flue notes + first-live-runs + sandbox research |
 | Mastra (direct) | full live loop PASSES [live]; durability 8/8 TWICE [live] (pre- and post-caching, 152s total cached) — cleanest durability record of the three | lowest wiring friction; zod4 fine; native subagents; NO skill concept [live] (criterion 7); thin/BYO auth; no default isolation (BYO provider) [doc]; slowest boot ~6.5s; Apache-2.0 [live] | mastra notes + first-live-runs + sandbox research |
 | Smithers orchestrating Eve/Flue (pattern A) | not started — blocked on direct baselines (test-plan) | — | — |
