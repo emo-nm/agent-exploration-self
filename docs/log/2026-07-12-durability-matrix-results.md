@@ -260,6 +260,27 @@ Reading:
   (socket-close race on localhost under load). Our bug, not eve's; rerun
   solo passed cleanly. Add retry-on-EINVAL if it recurs.
 
+## Flue's "fixed ~45s recovery overhead" decomposed (2026-07-13, traced)
+
+Instrumented the flue driver's poll loop (`EVAL_TRACE=1`, drivers.ts) and
+cross-referenced the captured server log. Scenario 1, one run, PASS 42.0s:
+
+| window | duration | what's happening |
+|---|---|---|
+| kill -> flue serving again | ~2s | process restart; SQLite recovery was a non-issue this run |
+| flue ready -> agent instance starts | **~32s** | DEAD TIME. Server log: `ready` 21:47:48, `[agent] ...started` 21:48:20. The conversation snapshot doesn't change at all. Flue's runtime waits ~30s before re-claiming the interrupted submission — looks like a lease/visibility timeout on the in-flight submission expiring before another worker may pick it up |
+| instance start -> killed submission settles | ~1s | the interrupted turn is re-driven to completion (its pre-kill events had survived: message + tool-call + tool-result all present at first poll) |
+| -> resume submission settles | ~3s | the "continue" turn runs and settles |
+
+So the overhead is ONE thing, not many: a ~30s fixed wait before an
+interrupted submission is resumed after restart. Not our polling (1s
+cadence), not the model, and SQLite recovery contributed ~0 here (it CAN
+contribute on cold cross-process starts — the 503 gotcha stands separately).
+Implication for the 60s bar: flue passes only when (30s lease + turn length)
+< 60s, i.e. real-length turns fail on the lease alone. OPEN: is the lease
+configurable? If flue exposes a shorter takeover timeout, scenario 1 could
+pass with margin; check docs before the memo. [live]
+
 ## Where this leaves the gate
 
 Test-plan gate ("no Smithers work until direct eve and flue pass"): NOT open.

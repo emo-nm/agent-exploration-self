@@ -136,15 +136,29 @@ function createFlueDriver(deps: DriverDeps): AgentDriver {
       const until = opts?.until ?? "settled";
       const budget = opts?.timeoutMs ?? (until === "settled" ? 240_000 : 60_000);
       // Admit the durable submission (returns at accept, model runs server-side).
+      const t0 = Date.now();
       const admission = await a.sendMessage(threadId, message);
+      const trace = process.env.EVAL_TRACE
+        ? (msg: string) =>
+            console.error(`[trace flue +${((Date.now() - t0) / 1000).toFixed(1)}s] ${msg}`)
+        : undefined;
+      trace?.(`admitted submission ${admission.submissionId} (accept took ${Date.now() - t0}ms)`);
       const deadline = Date.now() + budget;
       let last: AgentEvent[] = [];
+      let lastSig = "";
       // Poll the materialized conversation until the target checkpoint. history()
       // is a durable point-in-time read: settlements populate on terminal, and
       // in-flight assistant/tool parts appear as the submission streams.
       while (Date.now() < deadline) {
         const { events, snapshot } = await a.getThread(threadId);
         last = events;
+        if (trace) {
+          const sig = `${events.length} events [${events.map((e) => e.type).join(",")}] settlements=[${snapshot.settlements.map((s) => `${s.submissionId}:${s.outcome ?? "?"}`).join(",")}]`;
+          if (sig !== lastSig) {
+            trace(sig);
+            lastSig = sig;
+          }
+        }
         if (until === "settled") {
           const settled = snapshot.settlements.some(
             (s) => s.submissionId === admission.submissionId,
