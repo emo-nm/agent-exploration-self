@@ -36,7 +36,8 @@ decision memo is the product. Parent context:
 | Architecture + demo-agent spec (incl. Mastra) | [`architecture.md`](architecture.md) | current — promoted from handoff 07-11 |
 | Test plan (durability suite, gate, security, adapters) | [`test-plan.md`](test-plan.md) | current — promoted from handoff 07-11 |
 | Deployment | [`deployment.md`](deployment.md) | placeholder — promote when phase 4 starts |
-| Findings per framework | [`findings.md`](findings.md) (from `findings-template.md`) | Phase 1 (scaffold) recorded per candidate |
+| Findings per framework | [`findings.md`](findings.md) (from `findings-template.md`) | phases 1-3 recorded per candidate |
+| Learnings synthesis (through first live runs + first matrix) | [`log/2026-07-12-learnings-so-far.md`](log/2026-07-12-learnings-so-far.md) | snapshot 07-12 — headline: all three complete the loop [live]; Eve escape-hatch/lock-in finding; Flue driver invalidated its first matrix; Mastra 8/8 credible |
 
 ## Criteria (from INT-27 — score each candidate on these in the memo)
 
