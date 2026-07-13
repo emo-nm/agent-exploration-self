@@ -3,6 +3,7 @@
 // attempt counts per scenario); the table is for the console.
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import type { UsageTotals } from "@demo/contracts";
 import type { BackendName } from "./backends.js";
 import type { PhaseResult, ScenarioStatus } from "./scenario-machine.js";
 
@@ -15,6 +16,8 @@ export interface ScenarioResult {
   ms: number;
   attempts: { publish: number; restarts: number };
   phases: PhaseResult[];
+  /** Summed usage/cost across the scenario's turns; omitted when none reported. */
+  totalUsage?: UsageTotals;
 }
 
 export interface RunReport {

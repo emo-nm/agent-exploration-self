@@ -285,6 +285,32 @@ export function normalizeEvent(
                 raw,
             };
         }
+        case "step.completed": {
+            // eve reports token/cost usage per completed model call (one step)
+            // on `data.usage` (StepCompletedStreamEvent). Fields already match
+            // our contract names 1:1; eve has no distinct totalTokens, so derive
+            // it from input+output. No model id is carried on this event.
+            const usage = (data.usage ?? {}) as {
+                costUsd?: number;
+                inputTokens?: number;
+                outputTokens?: number;
+                cacheReadTokens?: number;
+                cacheWriteTokens?: number;
+            };
+            const inputTokens = Number(usage.inputTokens ?? 0);
+            const outputTokens = Number(usage.outputTokens ?? 0);
+            return {
+                type: "usage",
+                inputTokens,
+                outputTokens,
+                cacheReadTokens: Number(usage.cacheReadTokens ?? 0),
+                cacheWriteTokens: Number(usage.cacheWriteTokens ?? 0),
+                totalTokens: inputTokens + outputTokens,
+                costUsd: Number(usage.costUsd ?? 0),
+                ts,
+                raw,
+            };
+        }
         case "turn.failed":
         case "session.failed":
         case "step.failed":

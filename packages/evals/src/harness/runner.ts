@@ -24,6 +24,7 @@ import { createDriver } from "./drivers.js";
 import { foldEffectRows } from "./exactly-once.js";
 import { runScenario } from "./scenario-machine.js";
 import { SCENARIOS, scenarioByNumber, type ScenarioDef } from "./scenarios.js";
+import { emptyUsageTotals } from "@demo/contracts";
 import type { ScenarioContext } from "./context.js";
 import { summarize, writeReport, renderTable, type ScenarioResult, type RunReport } from "./report.js";
 
@@ -149,6 +150,7 @@ export async function runDurability(opts: RunnerOptions): Promise<RunReport> {
     // fresh per-scenario counters + scratchpad
     ctx.attempts = { publish: 0, restarts: 0 };
     ctx.bag = {};
+    ctx.usage = emptyUsageTotals();
     const run = await runScenario(def.phases, ctx);
     results.push({
       n: def.n,
@@ -159,6 +161,8 @@ export async function runDurability(opts: RunnerOptions): Promise<RunReport> {
       ms: run.ms,
       attempts: { ...ctx.attempts },
       phases: run.phases,
+      // Only surface usage when the backend actually reported some this scenario.
+      totalUsage: ctx.usage.events > 0 ? { ...ctx.usage } : undefined,
     });
   }
 

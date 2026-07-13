@@ -131,6 +131,25 @@ export function normalizeConversation(
         for (const part of message.parts) {
             events.push(...normalizePart(message, part, ts));
         }
+        // Flue attaches aggregated token/cost usage to the assistant message's
+        // metadata once its submission has settled (PromptUsage, verified live).
+        // Emit one normalized usage event per message that carries it — this is
+        // effectively one-per-settled-submission and needs no extra network call.
+        const usage = message.metadata?.usage;
+        if (usage) {
+            events.push({
+                type: "usage",
+                inputTokens: usage.input ?? 0,
+                outputTokens: usage.output ?? 0,
+                cacheReadTokens: usage.cacheRead ?? 0,
+                cacheWriteTokens: usage.cacheWrite ?? 0,
+                totalTokens: usage.totalTokens ?? 0,
+                costUsd: usage.cost?.total ?? 0,
+                model: message.metadata?.model?.id,
+                ts,
+                raw: usage,
+            });
+        }
     }
     return events;
 }

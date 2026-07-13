@@ -137,6 +137,23 @@ export const AgentErrorEventSchema = z.object({
     ...baseEventFields,
 });
 
+// Framework-neutral usage/cost event. Each backend reports usage in its own
+// vocabulary (flue PromptUsage, eve step.completed usage, mastra finish usage);
+// adapters normalize into this one shape. Unknown fields default to 0 (e.g.
+// mastra does not report cost, eve does not report a distinct totalTokens),
+// and the native payload is kept on `raw` like every other event.
+export const AgentUsageEventSchema = z.object({
+    type: z.literal("usage"),
+    inputTokens: z.number().default(0),
+    outputTokens: z.number().default(0),
+    cacheReadTokens: z.number().default(0),
+    cacheWriteTokens: z.number().default(0),
+    totalTokens: z.number().default(0),
+    costUsd: z.number().default(0),
+    model: z.string().optional(),
+    ...baseEventFields,
+});
+
 export const AgentEventSchema = z.discriminatedUnion("type", [
     AgentMessageEventSchema,
     AgentToolCallEventSchema,
@@ -146,5 +163,48 @@ export const AgentEventSchema = z.discriminatedUnion("type", [
     AgentApprovalDecidedEventSchema,
     AgentPublishedEventSchema,
     AgentErrorEventSchema,
+    AgentUsageEventSchema,
 ]);
 export type AgentEvent = z.infer<typeof AgentEventSchema>;
+
+// --- usage aggregation ---
+// Sum of every usage event in a stream. Framework-neutral so the web UI and the
+// durability harness can total usage the same way.
+export interface UsageTotals {
+    inputTokens: number;
+    outputTokens: number;
+    cacheReadTokens: number;
+    cacheWriteTokens: number;
+    totalTokens: number;
+    costUsd: number;
+    /** How many usage events contributed (0 => no usage was reported). */
+    events: number;
+}
+
+export function emptyUsageTotals(): UsageTotals {
+    return {
+        inputTokens: 0,
+        outputTokens: 0,
+        cacheReadTokens: 0,
+        cacheWriteTokens: 0,
+        totalTokens: 0,
+        costUsd: 0,
+        events: 0,
+    };
+}
+
+/** Sum every `type: "usage"` event in `events` into one total. */
+export function sumUsageEvents(events: AgentEvent[]): UsageTotals {
+    const total = emptyUsageTotals();
+    for (const event of events) {
+        if (event.type !== "usage") continue;
+        total.inputTokens += event.inputTokens;
+        total.outputTokens += event.outputTokens;
+        total.cacheReadTokens += event.cacheReadTokens;
+        total.cacheWriteTokens += event.cacheWriteTokens;
+        total.totalTokens += event.totalTokens;
+        total.costUsd += event.costUsd;
+        total.events += 1;
+    }
+    return total;
+}

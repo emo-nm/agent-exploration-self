@@ -31,6 +31,41 @@ describe('normalizeMastraChunk', () => {
     expect(ev).toMatchObject({ type: 'approval-pending', proposalId: 'prop_1' });
   });
 
+  it('maps a finish chunk to a usage event (AI-SDK usage vocabulary)', () => {
+    const ev = normalizeMastraChunk({
+      type: 'finish',
+      payload: {
+        output: {
+          usage: {
+            inputTokens: 200,
+            outputTokens: 80,
+            totalTokens: 280,
+            cachedInputTokens: 20,
+            cacheCreationInputTokens: 12,
+          },
+        },
+      },
+    });
+    expect(ev).toMatchObject({
+      type: 'usage',
+      inputTokens: 200,
+      outputTokens: 80,
+      cacheReadTokens: 20,
+      cacheWriteTokens: 12,
+      totalTokens: 280,
+      costUsd: 0,
+    });
+  });
+
+  it('maps step-finish totalUsage and treats a usage-less finish as noise', () => {
+    const step = normalizeMastraChunk({
+      type: 'step-finish',
+      payload: { totalUsage: { inputTokens: 5, outputTokens: 3, totalTokens: 8 } },
+    });
+    expect(step).toMatchObject({ type: 'usage', inputTokens: 5, outputTokens: 3, totalTokens: 8 });
+    expect(normalizeMastraChunk({ type: 'finish', payload: { output: {} } })).toBeNull();
+  });
+
   it('returns null for lifecycle noise', () => {
     expect(normalizeMastraChunk({ type: 'step-start' })).toBeNull();
     expect(normalizeMastraChunk({ type: 'text', payload: { text: '' } })).toBeNull();

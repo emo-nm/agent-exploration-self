@@ -4,6 +4,7 @@
 // The runner builds a live context; unit tests build a fake one.
 import type { EffectCountRow } from "@demo/persistence";
 import type { DemoRepo } from "@demo/persistence";
+import type { UsageTotals } from "@demo/contracts";
 import type { BackendName } from "./backends.js";
 import type { AgentDriver } from "./drivers.js";
 
@@ -28,6 +29,13 @@ export interface ScenarioContext {
 
   /** Per-scenario counters surfaced in the JSON result. */
   attempts: { publish: number; restarts: number };
+
+  /**
+   * Per-scenario running total of usage/cost events observed while driving
+   * turns. Accumulated by driveResearchTurn; surfaced as ScenarioResult
+   * .totalUsage. Optional so fake test contexts need not set it.
+   */
+  usage?: UsageTotals;
 
   /** Scratchpad for phases to share ids across a scenario (threadId, proposalId). */
   bag: Record<string, string>;

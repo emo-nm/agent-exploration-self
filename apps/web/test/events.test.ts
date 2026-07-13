@@ -19,6 +19,19 @@ describe("describeEvent", () => {
       [{ type: "subagent", name: "researcher", status: "started", ts }, "subagent"],
       [{ type: "approval-pending", proposalId: "p1", ts }, "approval"],
       [{ type: "approval-decided", proposalId: "p1", decision: "approved", ts }, "success"],
+      [
+        {
+          type: "usage",
+          inputTokens: 100,
+          outputTokens: 40,
+          cacheReadTokens: 10,
+          cacheWriteTokens: 0,
+          totalTokens: 140,
+          costUsd: 0.3,
+          ts,
+        },
+        "info",
+      ],
       [{ type: "error", message: "boom", ts }, "error"],
     ];
     for (const [event, tone] of cases) {
@@ -38,6 +51,26 @@ describe("describeEvent", () => {
       ts,
     });
     expect(d.summary).toContain("corpus");
+  });
+
+  it("renders a usage event as a compact tokens/cost row", () => {
+    const d = describeEvent({
+      type: "usage",
+      inputTokens: 100,
+      outputTokens: 40,
+      cacheReadTokens: 10,
+      cacheWriteTokens: 5,
+      totalTokens: 140,
+      costUsd: 0.1234,
+      model: "claude-x",
+      ts,
+    });
+    expect(d.label).toBe("usage");
+    expect(d.summary).toContain("in 100");
+    expect(d.summary).toContain("out 40");
+    expect(d.summary).toContain("cacheR 10");
+    expect(d.summary).toContain("$0.1234");
+    expect(d.summary).toContain("claude-x");
   });
 
   it("handles unparseable timestamps gracefully", () => {

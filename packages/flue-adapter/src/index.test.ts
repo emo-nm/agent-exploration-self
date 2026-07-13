@@ -63,6 +63,52 @@ describe("normalizeConversation", () => {
     }
   });
 
+  it("emits a usage event from assistant message metadata (PromptUsage)", () => {
+    const events = normalizeConversation([
+      {
+        id: "m1",
+        role: "assistant",
+        parts: [{ type: "text" as const, text: "done", state: "done" as const }],
+        metadata: {
+          timestamp: "2026-07-13T00:00:00.000Z",
+          model: { provider: "anthropic", id: "claude-x" },
+          usage: {
+            input: 100,
+            output: 40,
+            cacheRead: 10,
+            cacheWrite: 5,
+            totalTokens: 140,
+            cost: { input: 0.1, output: 0.2, cacheRead: 0, cacheWrite: 0, total: 0.3 },
+          },
+        },
+      },
+    ]);
+    for (const e of events) AgentEventSchema.parse(e);
+    const usage = events.find((e) => e.type === "usage");
+    expect(usage).toBeDefined();
+    if (usage && usage.type === "usage") {
+      expect(usage.inputTokens).toBe(100);
+      expect(usage.outputTokens).toBe(40);
+      expect(usage.cacheReadTokens).toBe(10);
+      expect(usage.cacheWriteTokens).toBe(5);
+      expect(usage.totalTokens).toBe(140);
+      expect(usage.costUsd).toBe(0.3);
+      expect(usage.model).toBe("claude-x");
+    }
+  });
+
+  it("emits no usage event when a message carries no usage metadata", () => {
+    const events = normalizeConversation([
+      {
+        id: "m1",
+        role: "user",
+        parts: [{ type: "text" as const, text: "hi", state: "done" as const }],
+        metadata: { timestamp: "2026-07-13T00:00:00.000Z" },
+      },
+    ]);
+    expect(events.some((e) => e.type === "usage")).toBe(false);
+  });
+
   it("maps a tool output-error part to an error event", () => {
     const events = normalizeConversation([
       {

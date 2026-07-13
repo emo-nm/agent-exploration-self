@@ -97,6 +97,21 @@ export function describeEvent(event: AgentEvent): EventDescriptor {
         tone: "success",
         time,
       };
+    case "usage": {
+      const cost =
+        event.costUsd > 0 ? ` $${event.costUsd.toFixed(4)}` : "";
+      const model = event.model ? ` ${event.model}` : "";
+      return {
+        glyph: "$",
+        label: "usage",
+        summary:
+          `in ${event.inputTokens} / out ${event.outputTokens} tok` +
+          ` (cacheR ${event.cacheReadTokens}, cacheW ${event.cacheWriteTokens})` +
+          `${cost}${model}`,
+        tone: "info",
+        time,
+      };
+    }
     case "error":
       return {
         glyph: "x",

@@ -8,6 +8,7 @@
 // injection at the effect layer, approval flips, restarts, exactly-once checks)
 // runs today. See the dry probe for the model-free durable exercise.
 import { publishArtifact } from "@demo/effects";
+import { sumUsageEvents } from "@demo/contracts";
 import { EVAL_CASES } from "../index.js";
 import type { Phase } from "./scenario-machine.js";
 import type { ScenarioContext } from "./context.js";
@@ -89,6 +90,17 @@ function driveResearchTurn(
       );
       const pending = await findLatestProposal(ctx);
       if (pending) ctx.bag.proposalId = pending;
+      // Fold any usage/cost events from this turn into the scenario total.
+      if (ctx.usage) {
+        const turn = sumUsageEvents(events);
+        ctx.usage.inputTokens += turn.inputTokens;
+        ctx.usage.outputTokens += turn.outputTokens;
+        ctx.usage.cacheReadTokens += turn.cacheReadTokens;
+        ctx.usage.cacheWriteTokens += turn.cacheWriteTokens;
+        ctx.usage.totalTokens += turn.totalTokens;
+        ctx.usage.costUsd += turn.costUsd;
+        ctx.usage.events += turn.events;
+      }
       return `drove agent turn (${until}) on thread ${threadId}: ${events.length} events`;
     },
   };

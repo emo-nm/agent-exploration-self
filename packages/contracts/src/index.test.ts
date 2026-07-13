@@ -7,6 +7,8 @@ import {
   PublicationReceiptSchema,
   AgentEventSchema,
   BackendSchema,
+  sumUsageEvents,
+  type AgentEvent,
 } from "./index.js";
 
 describe("contract schema round-trips", () => {
@@ -69,6 +71,39 @@ describe("contract schema round-trips", () => {
     if (parsed.type === "tool-call") {
       expect(parsed.raw).toEqual({ native: "payload" });
     }
+  });
+
+  it("usage event applies 0 defaults for unknown fields and keeps raw", () => {
+    const parsed = AgentEventSchema.parse({
+      type: "usage",
+      inputTokens: 100,
+      outputTokens: 40,
+      ts: new Date().toISOString(),
+      raw: { provider: "x" },
+    });
+    if (parsed.type === "usage") {
+      expect(parsed.cacheReadTokens).toBe(0);
+      expect(parsed.cacheWriteTokens).toBe(0);
+      expect(parsed.totalTokens).toBe(0);
+      expect(parsed.costUsd).toBe(0);
+      expect(parsed.raw).toEqual({ provider: "x" });
+    }
+  });
+
+  it("sumUsageEvents totals only usage events", () => {
+    const ts = new Date().toISOString();
+    const events: AgentEvent[] = [
+      { type: "message", role: "user", text: "hi", ts },
+      { type: "usage", inputTokens: 100, outputTokens: 40, cacheReadTokens: 10, cacheWriteTokens: 5, totalTokens: 140, costUsd: 0.3, ts },
+      { type: "usage", inputTokens: 50, outputTokens: 20, cacheReadTokens: 0, cacheWriteTokens: 0, totalTokens: 70, costUsd: 0.1, ts },
+    ];
+    const total = sumUsageEvents(events);
+    expect(total.inputTokens).toBe(150);
+    expect(total.outputTokens).toBe(60);
+    expect(total.totalTokens).toBe(210);
+    expect(total.costUsd).toBeCloseTo(0.4);
+    expect(total.events).toBe(2);
+    expect(sumUsageEvents([]).events).toBe(0);
   });
 
   it("agent-event published carries a receipt", () => {

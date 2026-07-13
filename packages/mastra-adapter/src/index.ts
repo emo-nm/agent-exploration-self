@@ -104,6 +104,44 @@ export function normalizeMastraChunk(chunk: MastraChunk): AgentEvent | null {
                 raw,
             };
         }
+        case "finish":
+        case "step-finish": {
+            // Mastra carries token usage on the terminal `finish` chunk under
+            // payload.output.usage (LanguageModelUsage: AI-SDK vocabulary), and
+            // step-finish also exposes payload.totalUsage. We map both chunk
+            // shapes; in practice one `finish` fires per turn. Mastra reports NO
+            // cost, so costUsd is 0. cachedInputTokens => cache read;
+            // cacheCreationInputTokens => cache write. totalTokens is provided.
+            const output = (p.output ?? {}) as { usage?: Record<string, unknown> };
+            const usage = (output.usage ??
+                (p.totalUsage as Record<string, unknown> | undefined) ??
+                {}) as {
+                inputTokens?: number;
+                outputTokens?: number;
+                totalTokens?: number;
+                cachedInputTokens?: number;
+                cacheCreationInputTokens?: number;
+            };
+            // Nothing usable on this chunk -> treat as lifecycle noise.
+            if (
+                usage.inputTokens == null &&
+                usage.outputTokens == null &&
+                usage.totalTokens == null
+            ) {
+                return null;
+            }
+            return {
+                type: "usage",
+                inputTokens: Number(usage.inputTokens ?? 0),
+                outputTokens: Number(usage.outputTokens ?? 0),
+                cacheReadTokens: Number(usage.cachedInputTokens ?? 0),
+                cacheWriteTokens: Number(usage.cacheCreationInputTokens ?? 0),
+                totalTokens: Number(usage.totalTokens ?? 0),
+                costUsd: 0,
+                ts: nowIso(),
+                raw,
+            };
+        }
         case "error":
         case "tool-error": {
             // LIVE-VERIFIED: on a failed tool `p.error` is a structured object
